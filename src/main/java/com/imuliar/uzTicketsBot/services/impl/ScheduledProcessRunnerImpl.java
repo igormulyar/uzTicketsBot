@@ -15,6 +15,10 @@ public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
 
     private static final Integer BULK_SEARCH_INTERVAL = 60_000; // milliseconds
 
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Scheduled(
             initialDelay = INITIAL_START_DELAY,

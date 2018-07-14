@@ -8,5 +8,9 @@ package com.imuliar.uzTicketsBot.services;
  */
 public interface ScheduledProcessRunner {
 
+    /**
+     * <p>This method is supposed to be run periodically by configured schedule.</p>
+     * <p>All scheduled service calls has to be defined within this method.</p>
+     */
     void searchTicketsForAllUsers();
 }
