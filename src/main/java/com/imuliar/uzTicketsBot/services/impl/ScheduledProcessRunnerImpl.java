@@ -11,9 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
  */
 public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
 
-    private static final Integer INITIAL_START_DELAY = 10_000; // milliseconds
+    private static final int INITIAL_START_DELAY = 10_000; // milliseconds
 
-    private static final Integer BULK_SEARCH_INTERVAL = 60_000; // milliseconds
+    private static final int BULK_SEARCH_INTERVAL = 60_000; // milliseconds
 
 
     /**

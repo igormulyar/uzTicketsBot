@@ -3,6 +3,7 @@ package com.imuliar.uzTicketsBot.model;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
 
 /**
  * <p>Defines common for all entities properties and behavior.</p>
@@ -10,6 +11,7 @@ import javax.persistence.Id;
  * @author imuliar
  * @since 1.0
  */
+@MappedSuperclass
 public abstract class EntityFrame {
 
     @Id
