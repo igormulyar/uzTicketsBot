@@ -13,7 +13,7 @@ public class UserContext {
     UserState state;
 
     public void processUpdate(Update update){
-        state.consumeInput(update);
+        state.processUpdate(update);
     }
 
     public void publishMessage(){

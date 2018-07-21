@@ -20,15 +20,15 @@ public class InitialUserState implements UserState {
     }
 
     @Override
-    public void consumeInput(Update update) {
-        publishMessage();
+    public void processUpdate(Update update) {
+        publishMessage(update);
         if(update.hasMessage() && verify(update.getMessage())){
 
         }
     }
 
     @Override
-    public void publishMessage() {
+    public void publishMessage(Update update) {
 
 
     }

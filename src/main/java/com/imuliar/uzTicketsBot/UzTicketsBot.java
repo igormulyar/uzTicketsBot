@@ -5,10 +5,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
@@ -71,38 +73,29 @@ public class UzTicketsBot extends TelegramLongPollingBot {
             String message_text = update.getMessage().getText();
             long chat_id = update.getMessage().getChatId();
 
-            InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-            List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-            List<InlineKeyboardButton> rowInline = new ArrayList<>();
-
-            InlineKeyboardButton inlineButton1 = new InlineKeyboardButton().setText("Say 'Hello'").setCallbackData("get_hello");
-            InlineKeyboardButton inlineButton2 = new InlineKeyboardButton().setText("Say 'Goodbye'").setCallbackData("get_goodbye");
-
-            rowInline.add(inlineButton1);
-            rowInline.add(inlineButton2);
-            rowsInline.add(rowInline);
-            markupInline.setKeyboard(rowsInline);
 
             SendMessage sendMessage = new SendMessage()
                     .enableMarkdown(true)
                     .setChatId(update.getMessage().getChatId().toString())
-                    .setText("HELLO! \n Please chose the text to update in this message.")
-                    .setReplyMarkup(buildCalendarPage());
+                    .setText("HELLO! \n Please, chose the departure date.")
+                    //.setReplyMarkup(buildCalendarPage(null))
+            ;
             try {
                 execute(sendMessage);
             } catch (Exception e) {
-                LOGGER.error("Exception: ", e.getMessage());
+                e.printStackTrace();
             }
         } else if (update.hasCallbackQuery()) {
             String call_data = update.getCallbackQuery().getData();
             long message_id = update.getCallbackQuery().getMessage().getMessageId();
             long chat_id = update.getCallbackQuery().getMessage().getChatId();
-            if (call_data.equals("get_hello")) {
-                String answer = "HELLO, MOTHERFUCKER!";
+            if (call_data.equals("plus_year")) {
                 EditMessageText new_message = new EditMessageText()
                         .setChatId(chat_id)
                         .setMessageId(toIntExact(message_id))
-                        .setText(answer);
+                        .setText("+1 year")
+                        //.setReplyMarkup(buildCalendarPage(LocalDate.now().plusYears(1)))
+                ;
                 try {
                     execute(new_message);
                 } catch (TelegramApiException e) {
@@ -125,64 +118,7 @@ public class UzTicketsBot extends TelegramLongPollingBot {
         }
     }
 
-    public InlineKeyboardMarkup buildCalendarPage() {
-        //calculations
-        LocalDate date = LocalDate.now();
-        int daysInMonthAmount = date.getMonth().length(date.isLeapYear());
-        LocalDate firstDayOfMonth = date.minusDays(date.getDayOfMonth() - 1L);
-        int firstDayOffset = firstDayOfMonth.getDayOfWeek().getValue() - 1;
-        int minimalDaysAmtInCalendar = daysInMonthAmount + firstDayOffset;
-        int totalDayButtonsAmount = minimalDaysAmtInCalendar;
-        while (totalDayButtonsAmount % 7 != 0) {
-            totalDayButtonsAmount++;
-        }
 
-        //markup
-        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-        markupInline.setKeyboard(keyboard);
-
-        InlineKeyboardButton yearToLeft = new InlineKeyboardButton().setText(" <<< ").setCallbackData("minus_year");
-        InlineKeyboardButton calendarYear = new InlineKeyboardButton().setText(String.valueOf(date.getYear())).setCallbackData(EMPTY_CALLBACK);
-        InlineKeyboardButton yearToRight = new InlineKeyboardButton().setText(" >>> ").setCallbackData("plus_year");
-        List<InlineKeyboardButton> yearRow = new ArrayList<>(Arrays.asList(yearToLeft, calendarYear, yearToRight));
-        keyboard.add(yearRow);
-
-        InlineKeyboardButton monthToLeft = new InlineKeyboardButton().setText(" <<<<< ").setCallbackData("minus_month");
-        InlineKeyboardButton calendarMonth = new InlineKeyboardButton().setText(date.getMonth().toString()).setCallbackData(EMPTY_CALLBACK);
-        InlineKeyboardButton monthToRight = new InlineKeyboardButton().setText(" >>>>> ").setCallbackData("plus_month");
-        List<InlineKeyboardButton> monthRow = new ArrayList<>(Arrays.asList(monthToLeft, calendarMonth, monthToRight));
-        keyboard.add(monthRow);
-
-        List<InlineKeyboardButton> daysOfWeekRow = new ArrayList<>();
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("mon").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("tue").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("wed").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("thu").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("fri").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("sat").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("sun").setCallbackData(EMPTY_CALLBACK));
-        keyboard.add(daysOfWeekRow);
-
-        int dayOfWeekCounter = 1;
-        List<InlineKeyboardButton> daysRow = new ArrayList<>(7);
-        for (int i = 1 - firstDayOffset; i < totalDayButtonsAmount + 1; i++) {
-            if (i <= 0 || (i > daysInMonthAmount && dayOfWeekCounter != 1)) {
-                daysRow.add(new InlineKeyboardButton().setText(" . ").setCallbackData(EMPTY_CALLBACK));
-            } else if(i <= daysInMonthAmount) {
-                LocalDate buttonDate = date.withDayOfMonth(i);
-                daysRow.add(new InlineKeyboardButton().setText(" " + i + " "). setCallbackData(buttonDate.toString()));
-            }
-            if (dayOfWeekCounter == 7) {
-                keyboard.add(daysRow);
-                daysRow = new ArrayList<>(7);
-                dayOfWeekCounter = 1;
-            } else {
-                dayOfWeekCounter++;
-            }
-        }
-        return markupInline;
-    }
 
     @Override
     public String getBotUsername() {
