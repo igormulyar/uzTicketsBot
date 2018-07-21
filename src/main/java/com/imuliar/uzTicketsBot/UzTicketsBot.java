@@ -43,6 +43,8 @@ public class UzTicketsBot extends TelegramLongPollingBot {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UzTicketsBot.class);
 
+    private static final String EMPTY_CALLBACK = "do_nothing";
+
     private InputUpdateHandler inputUpdateHandler;
 
     static {
@@ -85,10 +87,10 @@ public class UzTicketsBot extends TelegramLongPollingBot {
                     .enableMarkdown(true)
                     .setChatId(update.getMessage().getChatId().toString())
                     .setText("HELLO! \n Please chose the text to update in this message.")
-                    .setReplyMarkup(markupInline);
+                    .setReplyMarkup(buildCalendarPage());
             try {
                 execute(sendMessage);
-            } catch (TelegramApiException e) {
+            } catch (Exception e) {
                 LOGGER.error("Exception: ", e.getMessage());
             }
         } else if (update.hasCallbackQuery()) {
@@ -141,34 +143,35 @@ public class UzTicketsBot extends TelegramLongPollingBot {
         markupInline.setKeyboard(keyboard);
 
         InlineKeyboardButton yearToLeft = new InlineKeyboardButton().setText(" <<< ").setCallbackData("minus_year");
-        InlineKeyboardButton calendarYear = new InlineKeyboardButton().setText(String.valueOf(date.getYear()));
+        InlineKeyboardButton calendarYear = new InlineKeyboardButton().setText(String.valueOf(date.getYear())).setCallbackData(EMPTY_CALLBACK);
         InlineKeyboardButton yearToRight = new InlineKeyboardButton().setText(" >>> ").setCallbackData("plus_year");
         List<InlineKeyboardButton> yearRow = new ArrayList<>(Arrays.asList(yearToLeft, calendarYear, yearToRight));
         keyboard.add(yearRow);
 
         InlineKeyboardButton monthToLeft = new InlineKeyboardButton().setText(" <<<<< ").setCallbackData("minus_month");
-        InlineKeyboardButton calendarMonth = new InlineKeyboardButton().setText(date.getMonth().toString());
+        InlineKeyboardButton calendarMonth = new InlineKeyboardButton().setText(date.getMonth().toString()).setCallbackData(EMPTY_CALLBACK);
         InlineKeyboardButton monthToRight = new InlineKeyboardButton().setText(" >>>>> ").setCallbackData("plus_month");
         List<InlineKeyboardButton> monthRow = new ArrayList<>(Arrays.asList(monthToLeft, calendarMonth, monthToRight));
         keyboard.add(monthRow);
 
         List<InlineKeyboardButton> daysOfWeekRow = new ArrayList<>();
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("mon"));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("tue"));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("wed"));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("thu"));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("fri"));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("sat"));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("sun"));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText("mon").setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText("tue").setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText("wed").setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText("thu").setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText("fri").setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText("sat").setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText("sun").setCallbackData(EMPTY_CALLBACK));
         keyboard.add(daysOfWeekRow);
 
         int dayOfWeekCounter = 1;
         List<InlineKeyboardButton> daysRow = new ArrayList<>(7);
-        for (int i = 1; i < totalDayButtonsAmount + 1; i++) {
-            if (i <= firstDayOffset || (i > daysInMonthAmount && dayOfWeekCounter != 1)) {
-                daysRow.add(new InlineKeyboardButton().setText(" - "));
-            } else {
-                daysRow.add(new InlineKeyboardButton().setText(" " + i + " "). setCallbackData(String.valueOf(i)));
+        for (int i = 1 - firstDayOffset; i < totalDayButtonsAmount + 1; i++) {
+            if (i <= 0 || (i > daysInMonthAmount && dayOfWeekCounter != 1)) {
+                daysRow.add(new InlineKeyboardButton().setText(" . ").setCallbackData(EMPTY_CALLBACK));
+            } else if(i <= daysInMonthAmount) {
+                LocalDate buttonDate = date.withDayOfMonth(i);
+                daysRow.add(new InlineKeyboardButton().setText(" " + i + " "). setCallbackData(buttonDate.toString()));
             }
             if (dayOfWeekCounter == 7) {
                 keyboard.add(daysRow);
