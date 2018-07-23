@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
@@ -23,13 +22,13 @@ import static java.lang.Math.toIntExact;
  * 21.07.2018
  */
 
-public class PickDateState implements UserState {
-
-    private UzTicketsBot bot;
-
-    private static final String EMPTY_CALLBACK = "do_nothing";
+public class PickDateState extends AbstractState implements UserState {
 
     private static final String MESSAGE_TEXT = "Please chose the departure date";
+
+    public PickDateState(UzTicketsBot bot, UserContext context) {
+        super(bot, context);
+    }
 
     @Override
     public void processUpdate(Update update) {
@@ -67,27 +66,20 @@ public class PickDateState implements UserState {
 
     @Override
     public void publishMessage(Update update) {
-        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/start")) {
-            String message_text = update.getMessage().getText();
-            long chat_id = update.getMessage().getChatId();
-
-
-            SendMessage sendMessage = new SendMessage()
-                    .enableMarkdown(true)
-                    .setChatId(update.getMessage().getChatId().toString())
-                    .setText(MESSAGE_TEXT)
-                    .setReplyMarkup(buildCalendarPage(null));
-            try {
-                bot.execute(sendMessage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        SendMessage sendMessage = new SendMessage()
+                .enableMarkdown(true)
+                .setChatId(update.getMessage().getChatId().toString())
+                .setText(MESSAGE_TEXT)
+                .setReplyMarkup(buildCalendarPage(null));
+        try {
+            bot.execute(sendMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void publishValidationMessage() {
-
     }
 
     public InlineKeyboardMarkup buildCalendarPage(@Nullable LocalDate date) {
@@ -146,10 +138,5 @@ public class PickDateState implements UserState {
             }
         }
         return markupInline;
-    }
-
-    @Autowired
-    public void setUzTicketsBot(UzTicketsBot uzTicketsBot) {
-        this.bot = uzTicketsBot;
     }
 }
