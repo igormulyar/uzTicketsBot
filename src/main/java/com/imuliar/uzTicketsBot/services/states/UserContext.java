@@ -1,6 +1,7 @@
 package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.UzTicketsBot;
+import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.UserState;
 import org.telegram.telegrambots.api.objects.Update;
 
@@ -12,13 +13,16 @@ import org.telegram.telegrambots.api.objects.Update;
  */
 public class UserContext {
 
-    UserState state;
+    private UserState state;
+
+    private TicketRequest ticketRequest;
 
     private UzTicketsBot bot;
 
     public UserContext(UzTicketsBot bot) {
         this.bot = bot;
         this.state = new InitialUserState(bot, this);
+        this.ticketRequest = new TicketRequest();
     }
 
     public void processUpdate(Update update){
