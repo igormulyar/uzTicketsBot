@@ -4,6 +4,9 @@ import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.services.UserState;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.CallbackQuery;
 import org.telegram.telegrambots.api.objects.Message;
@@ -17,19 +20,17 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
  * @author imuliar
  * @since 1.0
  */
-public class InitialUserState extends AbstractState implements UserState {
+@Component
+@Scope("prototype")
+public class InitialUserState extends AbstractState {
 
     private static final String ADD_TASK_CALLBACK = "add_task";
 
     private static final String VIEW_TASKS_CALLBACK = "view_tasks";
 
-    private DepartureStationState departureStationState = new DepartureStationState(bot, context);
+    private DepartureStationState departureStationState;
 
-    private ViewTasksState viewTasksState = new ViewTasksState(bot, context);
-
-    public InitialUserState(UzTicketsBot bot, UserContext context) {
-        super(bot, context);
-    }
+    private ViewTasksState viewTasksState;
 
     @Override
     public void processUpdate(Update update) {
@@ -37,11 +38,13 @@ public class InitialUserState extends AbstractState implements UserState {
                 || (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals(TO_BEGGINNING_CALBACK))) {
             publishMessage(update);
         } else if (update.getCallbackQuery().getData().equals(ADD_TASK_CALLBACK)) {
+            departureStationState.setContext(context);
             context.setState(departureStationState);
-            context.publishMessage(update);
+            context.processUpdate(update);
         } else if (update.getCallbackQuery().getData().equals(VIEW_TASKS_CALLBACK)) {
+            viewTasksState.setContext(context);
             context.setState(viewTasksState);
-            context.publishMessage(update);
+            context.processUpdate(update);
         } else {
             String msg = String.format("WRONG APPLICATION STATE. WRONG QUERY %s FOR STATE: %s",
                     update.getCallbackQuery(), this.getClass().getName());
@@ -61,10 +64,7 @@ public class InitialUserState extends AbstractState implements UserState {
         buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
 
-        Long chatId = update.hasMessage()
-                ? update.getMessage().getChatId()
-                : update.getCallbackQuery().getMessage().getChatId();
-
+        Long chatId = resolveChatId(update);
         SendMessage sendMessage = new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(chatId)
@@ -77,8 +77,13 @@ public class InitialUserState extends AbstractState implements UserState {
         }
     }
 
-    @Override
-    public void publishValidationMessage() {
+    @Autowired
+    public void setDepartureStationState(DepartureStationState departureStationState) {
+        this.departureStationState = departureStationState;
+    }
 
+    @Autowired
+    public void setViewTasksState(ViewTasksState viewTasksState) {
+        this.viewTasksState = viewTasksState;
     }
 }

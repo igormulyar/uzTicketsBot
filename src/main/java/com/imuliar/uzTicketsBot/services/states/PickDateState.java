@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.Update;
@@ -21,14 +23,11 @@ import static java.lang.Math.toIntExact;
  * @author imuliar
  * 21.07.2018
  */
-
-public class PickDateState extends AbstractState implements UserState {
+@Component
+@Scope("prototype")
+public class PickDateState extends AbstractState{
 
     private static final String MESSAGE_TEXT = "Please chose the departure date";
-
-    public PickDateState(UzTicketsBot bot, UserContext context) {
-        super(bot, context);
-    }
 
     @Override
     public void processUpdate(Update update) {
@@ -76,10 +75,6 @@ public class PickDateState extends AbstractState implements UserState {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void publishValidationMessage() {
     }
 
     public InlineKeyboardMarkup buildCalendarPage(@Nullable LocalDate date) {

@@ -1,6 +1,5 @@
 package com.imuliar.uzTicketsBot.services.impl;
 
-import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.services.InputUpdateHandler;
 import com.imuliar.uzTicketsBot.services.states.UserContext;
 import java.time.Duration;
@@ -25,15 +24,18 @@ public class InputUpdateHandlerImpl implements InputUpdateHandler {
 
     private Map<Long, UserSession> userSessionPool = new HashMap<>();
 
-    private UzTicketsBot bot;
+    /**
+     * prototype scoped bean
+     */
+    private UserSession session;
 
     @Override
     public synchronized void handle(Update update) {
         Long chatId = update.getMessage() != null
                 ? update.getMessage().getChatId()
                 : update.getCallbackQuery().getMessage().getChatId();
-        LocalDateTime now = LocalDateTime.now();
-        clearExpiredSessions(now);
+
+        clearExpiredSessions();
 
         UserSession userSession = userSessionPool.get(chatId);
         if (userSession != null) {
@@ -41,21 +43,27 @@ public class InputUpdateHandlerImpl implements InputUpdateHandler {
             userContext.processUpdate(update);
             userSession.setCreationTime(LocalDateTime.now());
         } else {
-            UserContext newUserContext = new UserContext(bot);
-            UserSession newUserSession = new UserSession(newUserContext, now);
+            UserSession newUserSession = initSession();
             userSessionPool.put(chatId, newUserSession);
-            newUserContext.processUpdate(update);
+            newUserSession.getContext().processUpdate(update);
         }
     }
 
-    private void clearExpiredSessions(LocalDateTime now) {
+    private void clearExpiredSessions() {
         userSessionPool = userSessionPool.entrySet().stream()
-                .filter(entry -> Duration.between(entry.getValue().getCreationTime(), now).compareTo(sessionLifeDuration) < 0)
+                .filter(entry -> Duration.between(entry.getValue().getCreationTime(), LocalDateTime.now()).compareTo(sessionLifeDuration) < 0)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Autowired
-    public void setBot(UzTicketsBot bot) {
-        this.bot = bot;
+    public void setSession(UserSession session) {
+        this.session = session;
+    }
+
+    /**
+     * Returns new UserSession instance every time it is called
+     */
+    private UserSession initSession() {
+        return session;
     }
 }

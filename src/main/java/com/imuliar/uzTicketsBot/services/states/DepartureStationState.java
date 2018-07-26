@@ -1,22 +1,16 @@
 package com.imuliar.uzTicketsBot.services.states;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.imuliar.uzTicketsBot.UzTicketsBot;
-import com.imuliar.uzTicketsBot.services.UserState;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.client.RestTemplate;
-import org.telegram.telegrambots.api.objects.Update;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Collections;
+import com.imuliar.uzTicketsBot.services.StationCodeResolver;
+import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 /**
  * <p>The state when user choosing the station of departure.</p>
@@ -24,44 +18,69 @@ import java.util.List;
  * @author imuliar
  * @since 1.0
  */
-public class DepartureStationState extends AbstractState implements UserState {
+@Component
+@Scope("prototype")
+public class DepartureStationState extends AbstractState {
 
-    public DepartureStationState(UzTicketsBot bot, UserContext context) {
-        super(bot, context);
-    }
+    private static final String ADD_TASK_CALLBACK = "add_task";
+
+    private StationCodeResolver stationCodeResolver;
 
     @Override
     public void processUpdate(Update update) {
+        Long chatId = resolveChatId(update);
+        if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals(ADD_TASK_CALLBACK)) {
+            SendMessage sendMessage = new SendMessage()
+                    .enableMarkdown(true)
+                    .setChatId(chatId)
+                    .setText("Please enter the station of departure.");
+            try {
+                bot.execute(sendMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (update.hasMessage() && update.getMessage().hasText()) {
+            String userInput = update.getMessage().getText();
+            List<StationDto> proposedStations = stationCodeResolver.resolveProposedStations(userInput);
+            publishStationSearchResults(chatId, proposedStations);
+        }
 
+
+    }
+
+    private void publishStationSearchResults(Long chatId, List<StationDto> proposedStations) {
+        if (CollectionUtils.isEmpty(proposedStations)) {
+            InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+            markupInline.setKeyboard(keyboard);
+
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+            keyboard.add(buttons);
+            SendMessage sendMessage = new SendMessage()
+                    .enableMarkdown(true)
+                    .setChatId(chatId)
+                    .setText("Sorry, we can't find any station.")
+                    .setReplyMarkup(markupInline);
+            try {
+                bot.execute(sendMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            
+        }
     }
 
     @Override
     public void publishMessage(Update update) {
 
-    }
-
-    @Override
-    public void publishValidationMessage() {
 
     }
 
-    private List<StationDto> resolvePossibleStations(String userInput){
-
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
-        String url = String.format("https://booking.uz.gov.ua/ru/train_search/station/?term=%s", userInput);
-
-        HttpHeaders headers = new HttpHeaders();
-        LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-
-        HttpEntity<LinkedMultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-        String body = response.getBody();
-        try {
-            return new ObjectMapper().readValue(body, new TypeReference<List<StationDto>>(){});
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return Collections.emptyList();
+    @Autowired
+    public void setStationCodeResolver(StationCodeResolver stationCodeResolver) {
+        this.stationCodeResolver = stationCodeResolver;
     }
 }

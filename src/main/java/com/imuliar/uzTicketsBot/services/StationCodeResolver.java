@@ -1,5 +1,8 @@
 package com.imuliar.uzTicketsBot.services;
 
+import com.imuliar.uzTicketsBot.services.states.StationDto;
+import java.util.List;
+
 /**
  * <p>Service for fetching the station code.</p>
  *
@@ -10,8 +13,9 @@ public interface StationCodeResolver {
 
     /**
      * <p>Resolves station code using given station name.</p>
-     * @param stationName station name
+     *
+     * @param userInput station name entered by user
      * @return station code
      */
-    String resolveCode(String stationName);
+    List<StationDto> resolveProposedStations(String userInput);
 }

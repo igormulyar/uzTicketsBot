@@ -1,8 +1,11 @@
 package com.imuliar.uzTicketsBot.services.states;
 
-import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.UserState;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.objects.Update;
 
 /**
@@ -11,19 +14,13 @@ import org.telegram.telegrambots.api.objects.Update;
  * @author imuliar
  * @since 1.0
  */
+@Component
+@Scope("prototype")
 public class UserContext {
 
-    private UserState state;
+    private AbstractState state;
 
-    private TicketRequest ticketRequest;
-
-    private UzTicketsBot bot;
-
-    public UserContext(UzTicketsBot bot) {
-        this.bot = bot;
-        this.state = new InitialUserState(bot, this);
-        this.ticketRequest = new TicketRequest();
-    }
+    private TicketRequest ticketRequest = new TicketRequest();
 
     public void processUpdate(Update update){
         state.processUpdate(update);
@@ -37,7 +34,18 @@ public class UserContext {
         return state;
     }
 
-    public void setState(UserState state) {
+    @Autowired
+    @Qualifier("initialUserState")
+    public void setState(AbstractState state) {
         this.state = state;
+        state.setContext(this);
+    }
+
+    public TicketRequest getTicketRequest() {
+        return ticketRequest;
+    }
+
+    public void setTicketRequest(TicketRequest ticketRequest) {
+        this.ticketRequest = ticketRequest;
     }
 }

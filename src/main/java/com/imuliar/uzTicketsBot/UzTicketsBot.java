@@ -37,7 +37,6 @@ public class UzTicketsBot extends TelegramLongPollingBot {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UzTicketsBot.class);
 
-
     private InputUpdateHandler inputUpdateHandler;
 
     static {
@@ -58,8 +57,6 @@ public class UzTicketsBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         inputUpdateHandler.handle(update);
     }
-
-
 
     @Override
     public String getBotUsername() {
