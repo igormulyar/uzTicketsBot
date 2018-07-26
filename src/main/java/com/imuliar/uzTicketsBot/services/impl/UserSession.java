@@ -3,6 +3,7 @@ package com.imuliar.uzTicketsBot.services.impl;
 import com.imuliar.uzTicketsBot.services.states.UserContext;
 import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UserSession {
 
     private UserContext context;

@@ -3,7 +3,9 @@ package com.imuliar.uzTicketsBot.services.states;
 import com.imuliar.uzTicketsBot.services.StationCodeResolver;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -19,7 +21,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
  * @since 1.0
  */
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DepartureStationState extends AbstractState {
 
     private static final String ADD_TASK_CALLBACK = "add_task";
@@ -69,7 +71,32 @@ public class DepartureStationState extends AbstractState {
                 e.printStackTrace();
             }
         } else {
-            
+            InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+            markupInline.setKeyboard(keyboard);
+
+            List<List<StationDto>> partitions = ListUtils.partition(proposedStations, 2);
+            for(List<StationDto> partition : partitions){
+                List<InlineKeyboardButton> buttonLine = new ArrayList<>();
+                partition.forEach(station -> buttonLine.add(new InlineKeyboardButton()
+                        .setText(station.getTitle()).setCallbackData("stationId:" + station.getValue())));
+                keyboard.add(buttonLine);
+            }
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+            keyboard.add(buttons);
+            SendMessage sendMessage = new SendMessage()
+                    .enableMarkdown(true)
+                    .setChatId(chatId)
+                    .setText("Please, choose the station.")
+                    .setReplyMarkup(markupInline);
+            try {
+                bot.execute(sendMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
     }
 

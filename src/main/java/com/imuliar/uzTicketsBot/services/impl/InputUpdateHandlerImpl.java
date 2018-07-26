@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.api.objects.Update;
 
@@ -18,16 +19,16 @@ import org.telegram.telegrambots.api.objects.Update;
  * @since 1.0
  */
 @Service
-public class InputUpdateHandlerImpl implements InputUpdateHandler {
+public abstract class InputUpdateHandlerImpl implements InputUpdateHandler {
 
-    private static final Duration sessionLifeDuration = Duration.ofMinutes(1).plusSeconds(30);
+    private static final Duration sessionLifeDuration = Duration.ofMinutes(1);
 
     private Map<Long, UserSession> userSessionPool = new HashMap<>();
 
     /**
      * prototype scoped bean
      */
-    private UserSession session;
+    private UserSession userSession;
 
     @Override
     public synchronized void handle(Update update) {
@@ -37,11 +38,11 @@ public class InputUpdateHandlerImpl implements InputUpdateHandler {
 
         clearExpiredSessions();
 
-        UserSession userSession = userSessionPool.get(chatId);
-        if (userSession != null) {
-            UserContext userContext = userSession.getContext();
+        UserSession session = userSessionPool.get(chatId);
+        if (session != null) {
+            UserContext userContext = session.getContext();
             userContext.processUpdate(update);
-            userSession.setCreationTime(LocalDateTime.now());
+            session.setCreationTime(LocalDateTime.now());
         } else {
             UserSession newUserSession = initSession();
             userSessionPool.put(chatId, newUserSession);
@@ -56,14 +57,10 @@ public class InputUpdateHandlerImpl implements InputUpdateHandler {
     }
 
     @Autowired
-    public void setSession(UserSession session) {
-        this.session = session;
+    public void setSession(UserSession userSession) {
+        this.userSession = userSession;
     }
 
-    /**
-     * Returns new UserSession instance every time it is called
-     */
-    private UserSession initSession() {
-        return session;
-    }
+    @Lookup
+    abstract UserSession initSession();
 }

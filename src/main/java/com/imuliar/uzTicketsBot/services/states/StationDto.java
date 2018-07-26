@@ -9,11 +9,11 @@ package com.imuliar.uzTicketsBot.services.states;
  */
 public class StationDto {
 
-    String title;
+    private String title;
 
-    String region;
+    private String region;
 
-    String value;
+    private String value;
 
     public String getTitle() {
         return title;
