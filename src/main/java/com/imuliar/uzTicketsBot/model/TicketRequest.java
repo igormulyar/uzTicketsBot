@@ -1,5 +1,6 @@
 package com.imuliar.uzTicketsBot.model;
 
+import com.imuliar.uzTicketsBot.services.states.Station;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -25,9 +26,9 @@ public class TicketRequest extends EntityFrame {
 
     private LocalDate date;
 
-    private String from;
+    private Station from;
 
-    private String to;
+    private Station to;
 
     @Enumerated(EnumType.STRING)
     private TicketRequestStatus status;
@@ -35,7 +36,7 @@ public class TicketRequest extends EntityFrame {
     public TicketRequest() {
     }
 
-    public TicketRequest(LocalDate date, String from, String to) {
+    public TicketRequest(LocalDate date, Station from, Station to) {
         this.date = date;
         this.from = from;
         this.to = to;
@@ -50,19 +51,19 @@ public class TicketRequest extends EntityFrame {
         this.date = date;
     }
 
-    public String getFrom() {
+    public Station getFrom() {
         return from;
     }
 
-    public void setFrom(String from) {
+    public void setFrom(Station from) {
         this.from = from;
     }
 
-    public String getTo() {
+    public Station getTo() {
         return to;
     }
 
-    public void setTo(String to) {
+    public void setTo(Station to) {
         this.to = to;
     }
 

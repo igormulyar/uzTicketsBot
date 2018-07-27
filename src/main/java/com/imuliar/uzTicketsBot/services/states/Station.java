@@ -7,7 +7,7 @@ package com.imuliar.uzTicketsBot.services.states;
  * @author imuliar
  * @since 1.0
  */
-public class StationDto {
+public class Station {
 
     private String title;
 
@@ -41,7 +41,7 @@ public class StationDto {
 
     @Override
     public String toString() {
-        return "StationDto{" +
+        return "Station{" +
                 "title='" + title + '\'' +
                 ", region='" + region + '\'' +
                 ", value='" + value + '\'' +

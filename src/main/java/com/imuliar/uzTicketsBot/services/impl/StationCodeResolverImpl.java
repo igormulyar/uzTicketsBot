@@ -3,7 +3,7 @@ package com.imuliar.uzTicketsBot.services.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imuliar.uzTicketsBot.services.StationCodeResolver;
-import com.imuliar.uzTicketsBot.services.states.StationDto;
+import com.imuliar.uzTicketsBot.services.states.Station;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -37,7 +37,7 @@ public class StationCodeResolverImpl implements StationCodeResolver {
      * {@inheritDoc}
      */
     @Override
-    public List<StationDto> resolveProposedStations(String userInput) {
+    public List<Station> resolveProposedStations(String userInput) {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
         String url = String.format(URL_PATTERN, userInput);
@@ -49,7 +49,7 @@ public class StationCodeResolverImpl implements StationCodeResolver {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
         String body = response.getBody();
         try {
-            return new ObjectMapper().readValue(body, new TypeReference<List<StationDto>>() {
+            return new ObjectMapper().readValue(body, new TypeReference<List<Station>>() {
             });
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
