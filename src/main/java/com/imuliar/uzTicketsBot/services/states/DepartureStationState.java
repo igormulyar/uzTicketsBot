@@ -1,12 +1,8 @@
 package com.imuliar.uzTicketsBot.services.states;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imuliar.uzTicketsBot.services.StationCodeResolver;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -34,10 +30,12 @@ public class DepartureStationState extends AbstractState {
 
     private ArrivalStationState arrivalStationState;
 
+    private List<Station> proposedStations;
+
     @Override
     public void processUpdate(Update update) {
         Long chatId = resolveChatId(update);
-        if(update.hasCallbackQuery()){
+        if (update.hasCallbackQuery()) {
             if (update.getCallbackQuery().getData().equals(ADD_TASK_CALLBACK)) {
                 SendMessage sendMessage = new SendMessage()
                         .enableMarkdown(true)
@@ -49,32 +47,27 @@ public class DepartureStationState extends AbstractState {
                     e.printStackTrace();
                 }
             }
-            if(canBeMappedToObject(update.getCallbackQuery().getData(), Station.class) ){
-                String jsonString = update.getCallbackQuery().getData();
-                Station selectedStation = null;
-                try {
-                    selectedStation = new ObjectMapper().readValue(jsonString, Station.class);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Optional.ofNullable(selectedStation)
-                        .ifPresent(station -> {
-                            context.getTicketRequest().setFrom(station);
-                            arrivalStationState.setContext(context);
-                            context.setState(arrivalStationState);
-                            //TODO decide what data should be passed to the next state
-                            context.processUpdate(update);
-                        });
+            if (update.getCallbackQuery().getData().matches(STATION_CALLBACK_REGEXP)) {
+                String callbackString = update.getCallbackQuery().getData();
+                String selectedId = callbackString.split(":")[1];
+                proposedStations.stream()
+                        .filter(proposed -> proposed.getValue().equals(selectedId))
+                        .findAny()
+                        .ifPresent(station -> publishSelectedStation(chatId, station));
             }
-        }
-         else if (update.hasMessage() && update.getMessage().hasText()) {
+            if (update.getCallbackQuery().getData().equals(ENTER_ARRIVAL)) {
+                arrivalStationState.setContext(context);
+                context.setState(arrivalStationState);
+                context.processUpdate(update);
+            }
+        } else if (update.hasMessage() && update.getMessage().hasText()) {
             String userInput = update.getMessage().getText();
-            List<Station> proposedStations = stationCodeResolver.resolveProposedStations(userInput);
-            publishStationSearchResults(chatId, proposedStations);
+            proposedStations = stationCodeResolver.resolveProposedStations(userInput);
+            publishStationSearchResults(chatId);
         }
     }
 
-    private void publishStationSearchResults(Long chatId, List<Station> proposedStations) {
+    private void publishStationSearchResults(Long chatId) {
         if (CollectionUtils.isEmpty(proposedStations)) {
             InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
@@ -100,10 +93,10 @@ public class DepartureStationState extends AbstractState {
             markupInline.setKeyboard(keyboard);
 
             List<List<Station>> partitions = ListUtils.partition(proposedStations, 2);
-            for(List<Station> partition : partitions){
+            for (List<Station> partition : partitions) {
                 List<InlineKeyboardButton> buttonLine = new ArrayList<>();
                 partition.forEach(station -> buttonLine.add(new InlineKeyboardButton()
-                        .setText(station.getTitle()).setCallbackData(buildStationJson(station))));
+                        .setText(station.getTitle()).setCallbackData(String.format(STATION_CALLBACK_PATTERN, station.getValue()))));
                 keyboard.add(buttonLine);
             }
             List<InlineKeyboardButton> buttons = new ArrayList<>();
@@ -113,32 +106,34 @@ public class DepartureStationState extends AbstractState {
             SendMessage sendMessage = new SendMessage()
                     .enableMarkdown(true)
                     .setChatId(chatId)
-                    .setText("Please, choose the station.")
+                    .setText("Please, choose one of proposed.")
                     .setReplyMarkup(markupInline);
             try {
                 bot.execute(sendMessage);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
     }
 
-    private String buildStationJson(Station station) {
-        try {
-            return new ObjectMapper().writeValueAsString(station);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
-        }
-    }
+    private void publishSelectedStation(Long chatId, Station station) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+        markupInline.setKeyboard(keyboard);
 
-    private <T>boolean canBeMappedToObject(String jsonString, Class<T> targetObjectClass){
+        List<InlineKeyboardButton> buttons = new ArrayList<>();
+        buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
+        buttons.add(new InlineKeyboardButton().setText("Next").setCallbackData(ENTER_ARRIVAL));
+        keyboard.add(buttons);
+        SendMessage sendMessage = new SendMessage()
+                .enableMarkdown(true)
+                .setChatId(chatId)
+                .setText("Chosen station of departure: " + station.getTitle())
+                .setReplyMarkup(markupInline);
         try {
-            new ObjectMapper().readValue(jsonString, targetObjectClass);
-            return true;
-        } catch (IOException e) {
-            //e.printStackTrace();
-            return false;
+            bot.execute(sendMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

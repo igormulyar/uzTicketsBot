@@ -17,6 +17,12 @@ public abstract class AbstractState implements UserState {
 
     protected static final String TO_BEGGINNING_CALBACK = "to_beginning";
 
+    protected static final String STATION_CALLBACK_PATTERN = "stationId:%s";
+
+    protected static final String STATION_CALLBACK_REGEXP = "^stationId\\:\\d{7}$";
+
+    protected static final String ENTER_ARRIVAL = "enter_arrival";
+
     protected UzTicketsBot bot;
 
     protected UserContext context;
