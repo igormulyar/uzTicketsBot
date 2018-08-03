@@ -2,8 +2,10 @@ package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.services.UserState;
+import java.io.Serializable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.telegram.telegrambots.api.methods.BotApiMethod;
 import org.telegram.telegrambots.api.objects.Update;
 
 /**
@@ -27,16 +29,23 @@ public abstract class AbstractState implements UserState {
 
     protected UserContext context;
 
-    protected Long resolveChatId(Update update){
-        if(update.hasMessage()){
+    protected Long resolveChatId(Update update) {
+        if (update.hasMessage()) {
             return update.getMessage().getChatId();
         }
-        if(update.hasCallbackQuery()){
+        if (update.hasCallbackQuery()) {
             return update.getCallbackQuery().getMessage().getChatId();
         }
         throw new IllegalStateException("Can't resolve chatId!!!");
     }
 
+    protected <T extends Serializable, Method extends BotApiMethod<T>> void sendBotResponse(Method method) {
+        try {
+            bot.execute(method);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public UserContext getContext() {
         return context;

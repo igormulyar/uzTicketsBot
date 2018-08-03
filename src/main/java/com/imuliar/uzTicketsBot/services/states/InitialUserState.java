@@ -1,15 +1,12 @@
 package com.imuliar.uzTicketsBot.services.states;
 
-import com.imuliar.uzTicketsBot.UzTicketsBot;
-import com.imuliar.uzTicketsBot.services.UserState;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.CallbackQuery;
-import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -30,7 +27,7 @@ public class InitialUserState extends AbstractState {
 
     private DepartureStationState departureStationState;
 
-    private ViewTasksState viewTasksState;
+    private AbstractState viewTasksState;
 
     @Override
     public void processUpdate(Update update) {
@@ -70,11 +67,8 @@ public class InitialUserState extends AbstractState {
                 .setChatId(chatId)
                 .setText("HELLO! \n Please, chose the action.")
                 .setReplyMarkup(markupInline);
-        try {
-            bot.execute(sendMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        sendBotResponse(sendMessage);
     }
 
     @Autowired
@@ -83,7 +77,8 @@ public class InitialUserState extends AbstractState {
     }
 
     @Autowired
-    public void setViewTasksState(ViewTasksState viewTasksState) {
+    @Qualifier("viewTasksState")
+    public void setViewTasksState(AbstractState viewTasksState) {
         this.viewTasksState = viewTasksState;
     }
 }

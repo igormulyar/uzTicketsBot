@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -28,7 +29,7 @@ public class DepartureStationState extends AbstractState {
 
     private StationCodeResolver stationCodeResolver;
 
-    private ArrivalStationState arrivalStationState;
+    private AbstractState arrivalStationState;
 
     private List<Station> proposedStations;
 
@@ -37,15 +38,10 @@ public class DepartureStationState extends AbstractState {
         Long chatId = resolveChatId(update);
         if (update.hasCallbackQuery()) {
             if (update.getCallbackQuery().getData().equals(ADD_TASK_CALLBACK)) {
-                SendMessage sendMessage = new SendMessage()
+                sendBotResponse(new SendMessage()
                         .enableMarkdown(true)
                         .setChatId(chatId)
-                        .setText("Please enter the station of departure.");
-                try {
-                    bot.execute(sendMessage);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                        .setText("Please enter the station of departure."));
             }
             if (update.getCallbackQuery().getData().matches(STATION_CALLBACK_REGEXP)) {
                 String callbackString = update.getCallbackQuery().getData();
@@ -54,6 +50,10 @@ public class DepartureStationState extends AbstractState {
                         .filter(proposed -> proposed.getValue().equals(selectedId))
                         .findAny()
                         .ifPresent(station -> publishSelectedStation(chatId, station));
+            }
+            if (update.getCallbackQuery().getData().equals(TO_BEGGINNING_CALBACK)) {
+                context.setInitialState();
+                context.processUpdate(update);
             }
             if (update.getCallbackQuery().getData().equals(ENTER_ARRIVAL)) {
                 arrivalStationState.setContext(context);
@@ -77,16 +77,11 @@ public class DepartureStationState extends AbstractState {
             buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
             buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            SendMessage sendMessage = new SendMessage()
+            sendBotResponse(new SendMessage()
                     .enableMarkdown(true)
                     .setChatId(chatId)
                     .setText("Sorry, we can't find any station.")
-                    .setReplyMarkup(markupInline);
-            try {
-                bot.execute(sendMessage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                    .setReplyMarkup(markupInline));
         } else {
             InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
@@ -103,16 +98,11 @@ public class DepartureStationState extends AbstractState {
             buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
             buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            SendMessage sendMessage = new SendMessage()
+            sendBotResponse(new SendMessage()
                     .enableMarkdown(true)
                     .setChatId(chatId)
                     .setText("Please, choose one of proposed.")
-                    .setReplyMarkup(markupInline);
-            try {
-                bot.execute(sendMessage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                    .setReplyMarkup(markupInline));
         }
     }
 
@@ -125,16 +115,11 @@ public class DepartureStationState extends AbstractState {
         buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
         buttons.add(new InlineKeyboardButton().setText("Next").setCallbackData(ENTER_ARRIVAL));
         keyboard.add(buttons);
-        SendMessage sendMessage = new SendMessage()
+        sendBotResponse(new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(chatId)
                 .setText("Chosen station of departure: " + station.getTitle())
-                .setReplyMarkup(markupInline);
-        try {
-            bot.execute(sendMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                .setReplyMarkup(markupInline));
     }
 
     @Override
@@ -147,7 +132,8 @@ public class DepartureStationState extends AbstractState {
     }
 
     @Autowired
-    public void setArrivalStationState(ArrivalStationState arrivalStationState) {
+    @Qualifier("arrivalStationState")
+    public void setArrivalStationState(AbstractState arrivalStationState) {
         this.arrivalStationState = arrivalStationState;
     }
 }
