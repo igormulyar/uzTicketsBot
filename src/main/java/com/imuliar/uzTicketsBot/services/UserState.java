@@ -11,6 +11,4 @@ import org.telegram.telegrambots.api.objects.Update;
 public interface UserState {
 
     void processUpdate(Update update);
-
-    void publishMessage(Update update);
 }

@@ -37,10 +37,6 @@ public abstract class UserContext {
         state.processUpdate(update);
     }
 
-    public void publishMessage(Update update) {
-        state.publishMessage(update);
-    }
-
     public UserState getState() {
         return state;
     }

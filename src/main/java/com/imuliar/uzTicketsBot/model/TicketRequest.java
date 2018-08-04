@@ -31,7 +31,7 @@ public class TicketRequest extends EntityFrame {
     private Station to;
 
     @Enumerated(EnumType.STRING)
-    private TicketRequestStatus status;
+    private TicketRequestStatus status ;
 
     public TicketRequest() {
     }
@@ -81,5 +81,16 @@ public class TicketRequest extends EntityFrame {
 
     public void setUser(TelegramUser user) {
         this.user = user;
+    }
+
+    @Override
+    public String toString() {
+        return "TicketRequest{" +
+                "user=" + user +
+                ", date=" + date +
+                ", from=" + from +
+                ", to=" + to +
+                ", status=" + status +
+                "} " + super.toString();
     }
 }

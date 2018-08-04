@@ -49,8 +49,7 @@ public class InitialUserState extends AbstractState {
         }
     }
 
-    @Override
-    public void publishMessage(Update update) {
+    private void publishMessage(Update update) {
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);

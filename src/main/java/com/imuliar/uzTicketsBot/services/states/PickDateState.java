@@ -1,8 +1,8 @@
 package com.imuliar.uzTicketsBot.services.states;
 
-import com.imuliar.uzTicketsBot.UzTicketsBot;
-import com.imuliar.uzTicketsBot.services.UserState;
+import com.imuliar.uzTicketsBot.model.TicketRequest;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +16,6 @@ import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import static java.lang.Math.toIntExact;
 
@@ -30,55 +29,98 @@ public class PickDateState extends AbstractState{
 
     private static final String MESSAGE_TEXT = "Please chose the departure date";
 
+    private static final String YEAR_BACK_CALLBACK = "year_back";
+
+    private static final String YEAR_FORWARD_CALLBACK = "year_forward";
+
+    private static final String MONTH_BACK_CALLBACK = "month_back";
+
+    private static final String MONTH_FORWARD_CALLBACK = "month_forward";
+
+    private static final String DATE_MATCHING_PATTERN = "^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$";
+
+    private LocalDate calendarViewDate = LocalDate.now();
+
     @Override
     public void processUpdate(Update update) {
-        if (update.hasCallbackQuery()) {
-            String call_data = update.getCallbackQuery().getData();
-            long message_id = update.getCallbackQuery().getMessage().getMessageId();
-            long chat_id = update.getCallbackQuery().getMessage().getChatId();
-
-            EditMessageText new_message = null;
-
-
-            if (call_data.equals("plus_year")) {
-
-                new_message = buildEditMessageTextObject(message_id, chat_id);
-
+        if(update.hasCallbackQuery()){
+            String callbackString = update.getCallbackQuery().getData();
+            if (callbackString.equals(ENTER_DATE)){
+                calendarViewDate = LocalDate.now();
+                displayCalendar(update);
             }
-
-            try {
-                bot.execute(new_message);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
+            if (callbackString.equals(YEAR_BACK_CALLBACK)){
+                calendarViewDate = calendarViewDate.minusYears(1);
+                displayCalendarUpdated(update);
+            }
+            if (callbackString.equals(YEAR_FORWARD_CALLBACK)){
+                calendarViewDate = calendarViewDate.plusYears(1);
+                displayCalendarUpdated(update);
+            }
+            if (callbackString.equals(MONTH_BACK_CALLBACK)){
+                calendarViewDate = calendarViewDate.minusMonths(1);
+                displayCalendarUpdated(update);
+            }
+            if (callbackString.equals(MONTH_FORWARD_CALLBACK)){
+                calendarViewDate = calendarViewDate.plusMonths(1);
+                displayCalendarUpdated(update);
+            }
+            if (callbackString.equals(TO_BEGGINNING_CALBACK)){
+                context.setInitialState();
+                context.processUpdate(update);
+            }
+            if(callbackString.matches(DATE_MATCHING_PATTERN)){
+                LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
+                context.getTicketRequest().setDate(pickedDate);
+                System.out.println(context.getTicketRequest().toString());
+                publishTicketRequestSummary(update);
             }
         }
+
+
     }
 
-    private EditMessageText buildEditMessageTextObject(long message_id, long chat_id) {
-        EditMessageText new_message;
-        new_message = new EditMessageText()
-                .setChatId(chat_id)
-                .setMessageId(toIntExact(message_id))
-                .setText(MESSAGE_TEXT)
-                .setReplyMarkup(buildCalendarPage(LocalDate.now().plusYears(1)));
-        return new_message;
-    }
+    private void publishTicketRequestSummary(Update update) {
+        TicketRequest ticketRequest = context.getTicketRequest();
+        String ticketRequestSummary = "Confirm search the train: " +
+                "FROM " + ticketRequest.getFrom().getTitle() + " " +
+                "TO " + ticketRequest.getTo().getTitle() + ". " +
+                "DEPARTURE DATE: " + ticketRequest.getDate();
 
-    @Override
-    public void publishMessage(Update update) {
-        SendMessage sendMessage = new SendMessage()
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+        markupInline.setKeyboard(keyboard);
+        List<InlineKeyboardButton> buttons = new ArrayList<>();
+        buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(ENTER_DATE));
+        keyboard.add(buttons);
+
+        sendBotResponse(new SendMessage()
                 .enableMarkdown(true)
-                .setChatId(update.getMessage().getChatId().toString())
-                .setText(MESSAGE_TEXT)
-                .setReplyMarkup(buildCalendarPage(null));
-        try {
-            bot.execute(sendMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                .setChatId(resolveChatId(update))
+                .setText(ticketRequestSummary)
+                .setReplyMarkup(markupInline));
     }
 
-    public InlineKeyboardMarkup buildCalendarPage(@Nullable LocalDate date) {
+    private void displayCalendarUpdated(Update update) {
+        Long chatId = resolveChatId(update);
+        Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
+        sendBotResponse(new EditMessageText()
+                .setChatId(chatId)
+                .setMessageId(toIntExact(messageId))
+                .setText(MESSAGE_TEXT)
+                .setReplyMarkup(buildCalendarMarkup(calendarViewDate)));
+    }
+
+    private void displayCalendar(Update update) {
+        sendBotResponse(new SendMessage()
+                .enableMarkdown(true)
+                .setChatId(resolveChatId(update))
+                .setText(MESSAGE_TEXT)
+                .setReplyMarkup(buildCalendarMarkup(calendarViewDate)));
+    }
+
+    private InlineKeyboardMarkup buildCalendarMarkup(@Nullable LocalDate date) {
         //calculations
         date = Optional.ofNullable(date).orElse(LocalDate.now());
         int daysInMonthAmount = date.getMonth().length(date.isLeapYear());
@@ -94,15 +136,15 @@ public class PickDateState extends AbstractState{
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);
 
-        InlineKeyboardButton yearToLeft = new InlineKeyboardButton().setText(" <<< ").setCallbackData("minus_year");
+        InlineKeyboardButton yearToLeft = new InlineKeyboardButton().setText(" <<< ").setCallbackData(YEAR_BACK_CALLBACK);
         InlineKeyboardButton calendarYear = new InlineKeyboardButton().setText(String.valueOf(date.getYear())).setCallbackData(EMPTY_CALLBACK);
-        InlineKeyboardButton yearToRight = new InlineKeyboardButton().setText(" >>> ").setCallbackData("plus_year");
+        InlineKeyboardButton yearToRight = new InlineKeyboardButton().setText(" >>> ").setCallbackData(YEAR_FORWARD_CALLBACK);
         List<InlineKeyboardButton> yearRow = new ArrayList<>(Arrays.asList(yearToLeft, calendarYear, yearToRight));
         keyboard.add(yearRow);
 
-        InlineKeyboardButton monthToLeft = new InlineKeyboardButton().setText(" <<<<< ").setCallbackData("minus_month");
+        InlineKeyboardButton monthToLeft = new InlineKeyboardButton().setText(" <<<<< ").setCallbackData(MONTH_BACK_CALLBACK);
         InlineKeyboardButton calendarMonth = new InlineKeyboardButton().setText(date.getMonth().toString()).setCallbackData(EMPTY_CALLBACK);
-        InlineKeyboardButton monthToRight = new InlineKeyboardButton().setText(" >>>>> ").setCallbackData("plus_month");
+        InlineKeyboardButton monthToRight = new InlineKeyboardButton().setText(" >>>>> ").setCallbackData(MONTH_FORWARD_CALLBACK);
         List<InlineKeyboardButton> monthRow = new ArrayList<>(Arrays.asList(monthToLeft, calendarMonth, monthToRight));
         keyboard.add(monthRow);
 

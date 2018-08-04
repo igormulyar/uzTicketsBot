@@ -17,9 +17,4 @@ public class ViewTasksState extends AbstractState {
     public void processUpdate(Update update) {
 
     }
-
-    @Override
-    public void publishMessage(Update update) {
-
-    }
 }

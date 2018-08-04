@@ -3,14 +3,23 @@ package com.imuliar.uzTicketsBot.services.states;
 import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.services.UserState;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.util.CollectionUtils;
 import org.telegram.telegrambots.api.methods.BotApiMethod;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 /**
+ * <p>Encapsulates properties and behaviour which is common for child states.</p>
+ *
  * @author imuliar
- * 22.07.2018
+ * @since 1.0
  */
 
 public abstract class AbstractState implements UserState {
@@ -19,11 +28,17 @@ public abstract class AbstractState implements UserState {
 
     protected static final String TO_BEGGINNING_CALBACK = "to_beginning";
 
+    protected static final String ADD_TASK_CALLBACK = "add_task";
+
     protected static final String STATION_CALLBACK_PATTERN = "stationId:%s";
 
     protected static final String STATION_CALLBACK_REGEXP = "^stationId\\:\\d{7}$";
 
     protected static final String ENTER_ARRIVAL = "enter_arrival";
+
+    protected static final String ENTER_DATE = "enter_date";
+
+    protected List<Station> proposedStations;
 
     protected UzTicketsBot bot;
 
@@ -44,6 +59,45 @@ public abstract class AbstractState implements UserState {
             bot.execute(method);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    protected void publishStationSearchResults(Long chatId) {
+        if (CollectionUtils.isEmpty(proposedStations)) {
+            InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+            markupInline.setKeyboard(keyboard);
+
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+            keyboard.add(buttons);
+            sendBotResponse(new SendMessage()
+                    .enableMarkdown(true)
+                    .setChatId(chatId)
+                    .setText("Sorry, we can't find any station.")
+                    .setReplyMarkup(markupInline));
+        } else {
+            InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+            markupInline.setKeyboard(keyboard);
+
+            List<List<Station>> partitions = ListUtils.partition(proposedStations, 2);
+            for (List<Station> partition : partitions) {
+                List<InlineKeyboardButton> buttonLine = new ArrayList<>();
+                partition.forEach(station -> buttonLine.add(new InlineKeyboardButton()
+                        .setText(station.getTitle()).setCallbackData(String.format(STATION_CALLBACK_PATTERN, station.getValue()))));
+                keyboard.add(buttonLine);
+            }
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+            keyboard.add(buttons);
+            sendBotResponse(new SendMessage()
+                    .enableMarkdown(true)
+                    .setChatId(chatId)
+                    .setText("Please, choose one of proposed.")
+                    .setReplyMarkup(markupInline));
         }
     }
 
