@@ -82,17 +82,17 @@ public class PickDateState extends AbstractState {
 
     private void publishTicketRequestSummary(Update update) {
         TicketRequest ticketRequest = context.getTicketRequest();
-        String ticketRequestSummary = "Confirm search the train: " +
-                "FROM " + ticketRequest.getFrom().getTitle() + " " +
-                "TO " + ticketRequest.getTo().getTitle() + ". " +
-                "DEPARTURE DATE: " + ticketRequest.getDate();
+        String ticketRequestSummary = "Search " +
+                "FROM [" + ticketRequest.getFrom().getTitle() + " " +
+                "] TO [" + ticketRequest.getTo().getTitle() +
+                "] DATE [" + ticketRequest.getDate() + "]";
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);
         List<InlineKeyboardButton> buttons = new ArrayList<>();
+        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(ENTER_DATE)); //TODO appropriate callback data
         buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
-        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(ENTER_DATE));
         keyboard.add(buttons);
 
         sendBotResponse(new SendMessage()
