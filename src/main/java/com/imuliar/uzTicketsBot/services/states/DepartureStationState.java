@@ -1,8 +1,6 @@
 package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.services.StationCodeResolver;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -10,8 +8,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 /**
  * <p>The state when user choosing the station of departure.</p>
@@ -45,16 +41,13 @@ public class DepartureStationState extends AbstractState {
                         .findAny()
                         .ifPresent(station -> {
                             context.getTicketRequest().setFrom(station);
-                            publishSelectedStation(chatId, station);
+                            arrivalStationState.setContext(context);
+                            context.setState(arrivalStationState);
+                            context.processUpdate(update);
                         });
             }
             if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
                 context.setInitialState();
-                context.processUpdate(update);
-            }
-            if (callbackString.equals(ENTER_ARRIVAL)) {
-                arrivalStationState.setContext(context);
-                context.setState(arrivalStationState);
                 context.processUpdate(update);
             }
         } else if (update.hasMessage() && update.getMessage().hasText()) {
@@ -62,22 +55,6 @@ public class DepartureStationState extends AbstractState {
             proposedStations = stationCodeResolver.resolveProposedStations(userInput);
             publishStationSearchResults(chatId);
         }
-    }
-
-    private void publishSelectedStation(Long chatId, Station station) {
-        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-        markupInline.setKeyboard(keyboard);
-
-        List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
-        buttons.add(new InlineKeyboardButton().setText("Next").setCallbackData(ENTER_ARRIVAL));
-        keyboard.add(buttons);
-        sendBotResponse(new SendMessage()
-                .enableMarkdown(true)
-                .setChatId(chatId)
-                .setText("Chosen station: " + station.getTitle())
-                .setReplyMarkup(markupInline));
     }
 
     @Autowired

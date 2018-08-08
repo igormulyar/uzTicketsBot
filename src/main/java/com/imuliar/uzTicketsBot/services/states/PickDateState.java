@@ -25,7 +25,7 @@ import static java.lang.Math.toIntExact;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class PickDateState extends AbstractState{
+public class PickDateState extends AbstractState {
 
     private static final String MESSAGE_TEXT = "Please chose the departure date";
 
@@ -43,33 +43,33 @@ public class PickDateState extends AbstractState{
 
     @Override
     public void processUpdate(Update update) {
-        if(update.hasCallbackQuery()){
+        if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
-            if (callbackString.equals(ENTER_DATE)){
+            if (callbackString.matches(STATION_CALLBACK_REGEXP)) {
                 calendarViewDate = LocalDate.now();
                 displayCalendar(update);
             }
-            if (callbackString.equals(YEAR_BACK_CALLBACK)){
+            if (callbackString.equals(YEAR_BACK_CALLBACK)) {
                 calendarViewDate = calendarViewDate.minusYears(1);
                 displayCalendarUpdated(update);
             }
-            if (callbackString.equals(YEAR_FORWARD_CALLBACK)){
+            if (callbackString.equals(YEAR_FORWARD_CALLBACK)) {
                 calendarViewDate = calendarViewDate.plusYears(1);
                 displayCalendarUpdated(update);
             }
-            if (callbackString.equals(MONTH_BACK_CALLBACK)){
+            if (callbackString.equals(MONTH_BACK_CALLBACK)) {
                 calendarViewDate = calendarViewDate.minusMonths(1);
                 displayCalendarUpdated(update);
             }
-            if (callbackString.equals(MONTH_FORWARD_CALLBACK)){
+            if (callbackString.equals(MONTH_FORWARD_CALLBACK)) {
                 calendarViewDate = calendarViewDate.plusMonths(1);
                 displayCalendarUpdated(update);
             }
-            if (callbackString.equals(TO_BEGGINNING_CALBACK)){
+            if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
                 context.setInitialState();
                 context.processUpdate(update);
             }
-            if(callbackString.matches(DATE_MATCHING_PATTERN)){
+            if (callbackString.matches(DATE_MATCHING_PATTERN)) {
                 LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
                 context.getTicketRequest().setDate(pickedDate);
                 System.out.println(context.getTicketRequest().toString());
