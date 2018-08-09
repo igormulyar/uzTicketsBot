@@ -49,8 +49,7 @@ public class ArrivalStationState extends AbstractState {
                 }
             }
             if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
-                context.setInitialState();
-                context.processUpdate(update);
+                goToBeginning(update);
             }
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             String userInput = update.getMessage().getText();

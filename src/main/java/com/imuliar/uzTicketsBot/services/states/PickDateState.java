@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
@@ -41,6 +43,8 @@ public class PickDateState extends AbstractState {
 
     private LocalDate calendarViewDate = LocalDate.now();
 
+    private AbstractState trackTicketsState;
+
     @Override
     public void processUpdate(Update update) {
         if (update.hasCallbackQuery()) {
@@ -66,7 +70,11 @@ public class PickDateState extends AbstractState {
                 displayCalendarUpdated(update);
             }
             if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
-                context.setInitialState();
+                goToBeginning(update);
+            }
+            if (callbackString.equals(CONFIRM_TICKETS_REQUEST)) {
+                trackTicketsState.setContext(context);
+                context.setState(trackTicketsState);
                 context.processUpdate(update);
             }
             if (callbackString.matches(DATE_MATCHING_PATTERN)) {
@@ -85,13 +93,13 @@ public class PickDateState extends AbstractState {
         String ticketRequestSummary = "Search " +
                 "FROM [" + ticketRequest.getFrom().getTitle() + " " +
                 "] TO [" + ticketRequest.getTo().getTitle() +
-                "] DATE [" + ticketRequest.getDate() + "]";
+                "] DATE [" + ticketRequest.getDate() + "]?";
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(ENTER_DATE)); //TODO appropriate callback data
+        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(CONFIRM_TICKETS_REQUEST)); //TODO appropriate callback data
         buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
 
@@ -176,5 +184,11 @@ public class PickDateState extends AbstractState {
             }
         }
         return markupInline;
+    }
+
+    @Autowired
+    @Qualifier("trackTicketsState")
+    public void setTrackTicketsState(AbstractState trackTicketsState) {
+        this.trackTicketsState = trackTicketsState;
     }
 }

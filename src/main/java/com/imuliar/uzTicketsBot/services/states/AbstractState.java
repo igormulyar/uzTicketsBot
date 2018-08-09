@@ -34,9 +34,7 @@ public abstract class AbstractState implements UserState {
 
     protected static final String STATION_CALLBACK_REGEXP = "^stationId\\:\\d{7}$";
 
-    protected static final String ENTER_ARRIVAL = "enter_arrival";
-
-    protected static final String ENTER_DATE = "enter_date";
+    protected static final String CONFIRM_TICKETS_REQUEST = "confirm_tickets_req";
 
     protected List<Station> proposedStations;
 
@@ -99,6 +97,11 @@ public abstract class AbstractState implements UserState {
                     .setText("Please, choose one of proposed.")
                     .setReplyMarkup(markupInline));
         }
+    }
+
+    protected void goToBeginning(Update update) {
+        context.setInitialState();
+        context.processUpdate(update);
     }
 
     public UserContext getContext() {

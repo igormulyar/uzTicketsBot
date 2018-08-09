@@ -50,6 +50,7 @@ public class InitialUserState extends AbstractState {
     }
 
     private void publishMessage(Update update) {
+        context.setInitialState();
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);
