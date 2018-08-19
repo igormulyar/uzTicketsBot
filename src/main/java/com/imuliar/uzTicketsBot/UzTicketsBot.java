@@ -49,7 +49,7 @@ public class UzTicketsBot extends TelegramLongPollingBot {
         try {
             telegramBotsApi.registerBot(this);
         } catch (TelegramApiException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Can't register bot!", e);
         }
     }
 

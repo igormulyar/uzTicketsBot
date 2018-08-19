@@ -1,8 +1,8 @@
 package com.imuliar.uzTicketsBot.services.impl;
 
+import com.imuliar.uzTicketsBot.model.Station;
 import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.HttpTicketsInfoRetriever;
-import com.imuliar.uzTicketsBot.services.states.Station;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import org.slf4j.Logger;
@@ -38,11 +38,12 @@ public class HttpTicketsInfoRetrieverImpl implements HttpTicketsInfoRetriever {
      */
     @Override
     public String requestTickets(TicketRequest ticketRequest) {
-        LocalDate date = ticketRequest.getDate();
-        Station fromStation = ticketRequest.getFrom();
-        Station toStation = ticketRequest.getTo();
+        LocalDate date = ticketRequest.getDepartureDate();
+        Station fromStation = ticketRequest.getDepartureStation();
+        Station toStation = ticketRequest.getArrivalStation();
 
-        //TODO replace this with proper code
+        LOGGER.info("Searching for tickets: ?", ticketRequest);
+
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
         HttpHeaders headers = new HttpHeaders();
@@ -54,10 +55,12 @@ public class HttpTicketsInfoRetrieverImpl implements HttpTicketsInfoRetriever {
         HttpEntity<LinkedMultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
         ResponseEntity<String> response = restTemplate.exchange(UZ_SEARCH_URL, HttpMethod.POST, requestEntity, String.class);
 
-        if (!response.getBody().matches("warning")) {
+        if (response.hasBody() && !response.getBody().matches("warning")) {
+            LOGGER.info("Tickets found: ?", ticketRequest);
             return String.format(UZ_RESULT_URL_TEMPLATE, fromStation.getValue(), toStation.getValue(), date.toString());
-        } else {
-            return null;
         }
+
+        LOGGER.info("No tickets found: ?", ticketRequest);
+        return null;
     }
 }

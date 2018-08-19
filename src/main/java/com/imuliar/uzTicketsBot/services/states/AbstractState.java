@@ -1,11 +1,15 @@
 package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.UzTicketsBot;
+import com.imuliar.uzTicketsBot.model.Station;
 import com.imuliar.uzTicketsBot.services.UserState;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.apache.commons.collections4.ListUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.util.CollectionUtils;
@@ -24,6 +28,8 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
 
 public abstract class AbstractState implements UserState {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractState.class);
+
     protected static final String EMPTY_CALLBACK = "do_nothing";
 
     protected static final String TO_BEGGINNING_CALBACK = "to_beginning";
@@ -32,7 +38,7 @@ public abstract class AbstractState implements UserState {
 
     protected static final String STATION_CALLBACK_PATTERN = "stationId:%s";
 
-    protected static final String STATION_CALLBACK_REGEXP = "^stationId\\:\\d{7}$";
+    protected static final Pattern STATION_CALLBACK_REGEXP_PATTERN = Pattern.compile("^stationId\\:\\d{7}$");
 
     protected static final String CONFIRM_TICKETS_REQUEST = "confirm_tickets_req";
 
@@ -52,11 +58,11 @@ public abstract class AbstractState implements UserState {
         throw new IllegalStateException("Can't resolve chatId!!!");
     }
 
-    protected <T extends Serializable, Method extends BotApiMethod<T>> void sendBotResponse(Method method) {
+    protected <T extends Serializable, M extends BotApiMethod<T>> void sendBotResponse(M method) {
         try {
             bot.execute(method);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Bot execute method exception!", e);
         }
     }
 

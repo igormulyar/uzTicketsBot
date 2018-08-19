@@ -34,13 +34,13 @@ public class DepartureStationState extends AbstractState {
                         .setChatId(chatId)
                         .setText("Please enter the station of departure."));
             }
-            if (callbackString.matches(STATION_CALLBACK_REGEXP)) {
+            if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];
                 proposedStations.stream()
                         .filter(proposed -> proposed.getValue().equals(selectedId))
                         .findAny()
                         .ifPresent(station -> {
-                            context.getTicketRequest().setFrom(station);
+                            context.getTicketRequest().setDepartureStation(station);
                             arrivalStationState.setContext(context);
                             context.setState(arrivalStationState);
                             context.processUpdate(update);

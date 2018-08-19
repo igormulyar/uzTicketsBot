@@ -1,13 +1,16 @@
-package com.imuliar.uzTicketsBot.services.states;
+package com.imuliar.uzTicketsBot.model;
+
+import javax.persistence.Entity;
 
 /**
- * <p>Dto for carrying data about Station, retrieved from server.</p>
- * <p>Used for mapping from json-string</p>
+ * <p>Carrying data about Station, retrieved from server.</p>
+ * <p>Used for mapping from json-string and for persisting data in DB</p>
  *
  * @author imuliar
  * @since 1.0
  */
-public class Station {
+@Entity
+public class Station extends EntityFrame {
 
     private String title;
 

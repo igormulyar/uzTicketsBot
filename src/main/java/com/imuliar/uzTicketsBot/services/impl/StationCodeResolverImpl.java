@@ -3,7 +3,7 @@ package com.imuliar.uzTicketsBot.services.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imuliar.uzTicketsBot.services.StationCodeResolver;
-import com.imuliar.uzTicketsBot.services.states.Station;
+import com.imuliar.uzTicketsBot.model.Station;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -52,7 +52,7 @@ public class StationCodeResolverImpl implements StationCodeResolver {
             return new ObjectMapper().readValue(body, new TypeReference<List<Station>>() {
             });
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Can't read proposed stations list, retrieved from server", e);
         }
         return Collections.emptyList();
     }

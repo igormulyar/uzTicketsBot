@@ -1,6 +1,6 @@
 package com.imuliar.uzTicketsBot.services;
 
-import com.imuliar.uzTicketsBot.services.states.Station;
+import com.imuliar.uzTicketsBot.model.Station;
 import java.util.List;
 
 /**

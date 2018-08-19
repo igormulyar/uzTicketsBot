@@ -29,7 +29,7 @@ public class ArrivalStationState extends AbstractState {
         Long chatId = resolveChatId(update);
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
-            if (callbackString.matches(STATION_CALLBACK_REGEXP)) {
+            if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];
                 if (CollectionUtils.isEmpty(proposedStations)) {
                     sendBotResponse(new SendMessage()
@@ -41,7 +41,7 @@ public class ArrivalStationState extends AbstractState {
                             .filter(proposed -> proposed.getValue().equals(selectedId))
                             .findAny()
                             .ifPresent(station -> {
-                                context.getTicketRequest().setTo(station);
+                                context.getTicketRequest().setArrivalStation(station);
                                 pickDateState.setContext(context);
                                 context.setState(pickDateState);
                                 context.processUpdate(update);

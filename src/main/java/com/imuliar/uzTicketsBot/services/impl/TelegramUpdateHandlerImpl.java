@@ -4,10 +4,10 @@ import com.imuliar.uzTicketsBot.services.InputUpdateHandler;
 import com.imuliar.uzTicketsBot.services.states.UserContext;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.api.objects.Update;
@@ -19,19 +19,14 @@ import org.telegram.telegrambots.api.objects.Update;
  * @since 1.0
  */
 @Service
-public abstract class InputUpdateHandlerImpl implements InputUpdateHandler {
+public abstract class TelegramUpdateHandlerImpl implements InputUpdateHandler {
 
-    private static final Duration sessionLifeDuration = Duration.ofMinutes(1);
+    private static final Duration sessionAliveDuration = Duration.ofSeconds(45);
 
-    private Map<Long, UserSession> userSessionPool = new HashMap<>();
-
-    /**
-     * prototype scoped bean
-     */
-    private UserSession userSession;
+    private Map<Long, UserSession> userSessionPool = new ConcurrentHashMap<>();
 
     @Override
-    public synchronized void handle(Update update) {
+    public void handle(Update update) {
         Long chatId = update.getMessage() != null
                 ? update.getMessage().getChatId()
                 : update.getCallbackQuery().getMessage().getChatId();
@@ -51,14 +46,14 @@ public abstract class InputUpdateHandlerImpl implements InputUpdateHandler {
     }
 
     private void clearExpiredSessions() {
+        Predicate<Map.Entry<Long, UserSession>> notExpired = entry -> Duration.between(entry.getValue().getCreationTime(),
+                LocalDateTime.now()).compareTo(sessionAliveDuration) < 0;
         userSessionPool = userSessionPool.entrySet().stream()
-                .filter(entry -> Duration.between(entry.getValue().getCreationTime(), LocalDateTime.now()).compareTo(sessionLifeDuration) < 0)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    @Autowired
-    public void setSession(UserSession userSession) {
-        this.userSession = userSession;
+                .filter(notExpired)
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (v1, v2) -> v1,
+                        ConcurrentHashMap::new));
     }
 
     @Lookup

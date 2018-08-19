@@ -10,5 +10,9 @@ import org.telegram.telegrambots.api.objects.Update;
  */
 public interface UserState {
 
+    /**
+     * <p>Performs the action, which is specific for particular user state implementation.</p>
+     * @param update input update
+     */
     void processUpdate(Update update);
 }

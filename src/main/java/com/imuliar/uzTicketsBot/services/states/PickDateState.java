@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -39,21 +40,24 @@ public class PickDateState extends AbstractState {
 
     private static final String MONTH_FORWARD_CALLBACK = "month_forward";
 
-    private static final String DATE_MATCHING_PATTERN = "^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$";
+    private static final Pattern DATE_MATCHING_PATTERN = Pattern.compile("^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$");
 
     private LocalDate calendarViewDate = LocalDate.now();
 
     private AbstractState trackTicketsState;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void processUpdate(Update update) {
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
-            if (callbackString.matches(STATION_CALLBACK_REGEXP)) {
+            if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 calendarViewDate = LocalDate.now();
                 displayCalendar(update);
             }
-            if (callbackString.equals(YEAR_BACK_CALLBACK)) {
+            /*if (callbackString.equals(YEAR_BACK_CALLBACK)) {
                 calendarViewDate = calendarViewDate.minusYears(1);
                 displayCalendarUpdated(update);
             }
@@ -68,7 +72,7 @@ public class PickDateState extends AbstractState {
             if (callbackString.equals(MONTH_FORWARD_CALLBACK)) {
                 calendarViewDate = calendarViewDate.plusMonths(1);
                 displayCalendarUpdated(update);
-            }
+            }*/
             if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
                 goToBeginning(update);
             }
@@ -77,29 +81,45 @@ public class PickDateState extends AbstractState {
                 context.setState(trackTicketsState);
                 context.processUpdate(update);
             }
-            if (callbackString.matches(DATE_MATCHING_PATTERN)) {
+            switch (callbackString){
+                case YEAR_BACK_CALLBACK:
+                    calendarViewDate = calendarViewDate.minusYears(1);
+                    displayCalendarUpdated(update);
+                    break;
+                case YEAR_FORWARD_CALLBACK:
+                    calendarViewDate = calendarViewDate.plusYears(1);
+                    displayCalendarUpdated(update);
+                    break;
+                case MONTH_BACK_CALLBACK:
+                    calendarViewDate = calendarViewDate.minusMonths(1);
+                    displayCalendarUpdated(update);
+                    break;
+                case MONTH_FORWARD_CALLBACK:
+                    calendarViewDate = calendarViewDate.plusMonths(1);
+                    displayCalendarUpdated(update);
+                    break;
+            }
+
+
+            if (DATE_MATCHING_PATTERN.matcher(callbackString).matches()) {
                 LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
-                context.getTicketRequest().setDate(pickedDate);
+                context.getTicketRequest().setDepartureDate(pickedDate);
                 System.out.println(context.getTicketRequest().toString());
                 publishTicketRequestSummary(update);
             }
         }
-
-
     }
 
     private void publishTicketRequestSummary(Update update) {
         TicketRequest ticketRequest = context.getTicketRequest();
-        String ticketRequestSummary = "Search " +
-                "FROM [" + ticketRequest.getFrom().getTitle() + " " +
-                "] TO [" + ticketRequest.getTo().getTitle() +
-                "] DATE [" + ticketRequest.getDate() + "]?";
+        String ticketRequestSummary = String.format("Search FROM %s TO %s DATE %s", ticketRequest.getDepartureStation().getTitle(),
+                ticketRequest.getArrivalStation().getTitle(), ticketRequest.getDepartureDate());
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(CONFIRM_TICKETS_REQUEST)); //TODO appropriate callback data
+        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(CONFIRM_TICKETS_REQUEST));
         buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
 

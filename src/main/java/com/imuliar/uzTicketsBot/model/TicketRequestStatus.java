@@ -8,6 +8,5 @@ package com.imuliar.uzTicketsBot.model;
  */
 public enum TicketRequestStatus {
     ACTIVE,
-    COMPLETED,
-    FAILED
+    INACTIVE
 }

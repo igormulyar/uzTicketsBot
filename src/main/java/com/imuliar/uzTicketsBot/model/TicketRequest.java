@@ -1,7 +1,7 @@
 package com.imuliar.uzTicketsBot.model;
 
-import com.imuliar.uzTicketsBot.services.states.Station;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -9,6 +9,7 @@ import javax.persistence.ForeignKey;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.time.LocalDate;
+import javax.persistence.Table;
 
 /**
  * <p>The entity for transferring the data about requested tickets (ticket searching criteria).</p>
@@ -17,80 +18,74 @@ import java.time.LocalDate;
  * @since 1.0
  */
 @Entity
+@Table(name = "TicketRequest")
 public class TicketRequest extends EntityFrame {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_ID",
             foreignKey = @ForeignKey(name = "FK_Request_User"))
-    private TelegramUser user;
+    private TelegramUser telegramUser;
 
-    private LocalDate date;
+    @Column
+    private LocalDate departureDate;
 
-    private Station from;
+    private Station departureStation;
 
-    private Station to;
+    private Station arrivalStation;
 
     @Enumerated(EnumType.STRING)
-    private TicketRequestStatus status ;
+    private TicketRequestStatus requestStatus;
 
     public TicketRequest() {
     }
 
-    public TicketRequest(LocalDate date, Station from, Station to) {
-        this.date = date;
-        this.from = from;
-        this.to = to;
-        this.status = TicketRequestStatus.ACTIVE;
+    public TelegramUser getTelegramUser() {
+        return telegramUser;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public void setTelegramUser(TelegramUser telegramUser) {
+        this.telegramUser = telegramUser;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public LocalDate getDepartureDate() {
+        return departureDate;
     }
 
-    public Station getFrom() {
-        return from;
+    public void setDepartureDate(LocalDate departureDate) {
+        this.departureDate = departureDate;
     }
 
-    public void setFrom(Station from) {
-        this.from = from;
+    public Station getDepartureStation() {
+        return departureStation;
     }
 
-    public Station getTo() {
-        return to;
+    public void setDepartureStation(Station departureStation) {
+        this.departureStation = departureStation;
     }
 
-    public void setTo(Station to) {
-        this.to = to;
+    public Station getArrivalStation() {
+        return arrivalStation;
     }
 
-    public TicketRequestStatus getStatus() {
-        return status;
+    public void setArrivalStation(Station arrivalStation) {
+        this.arrivalStation = arrivalStation;
     }
 
-    public void setStatus(TicketRequestStatus status) {
-        this.status = status;
+    public TicketRequestStatus getRequestStatus() {
+        return requestStatus;
     }
 
-    public TelegramUser getUser() {
-        return user;
-    }
-
-    public void setUser(TelegramUser user) {
-        this.user = user;
+    public void setRequestStatus(TicketRequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
     }
 
     @Override
     public String toString() {
         return "TicketRequest{" +
-                "user=" + user +
-                ", date=" + date +
-                ", from=" + from +
-                ", to=" + to +
-                ", status=" + status +
-                "} " + super.toString();
+                ", departureDate=" + departureDate +
+                ", departureStation=" + departureStation +
+                ", arrivalStation=" + arrivalStation +
+                ", requestStatus=" + requestStatus +
+                "} ";
     }
 }
