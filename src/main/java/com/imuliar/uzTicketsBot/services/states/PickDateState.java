@@ -14,6 +14,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.Update;
@@ -57,22 +58,6 @@ public class PickDateState extends AbstractState {
                 calendarViewDate = LocalDate.now();
                 displayCalendar(update);
             }
-            /*if (callbackString.equals(YEAR_BACK_CALLBACK)) {
-                calendarViewDate = calendarViewDate.minusYears(1);
-                displayCalendarUpdated(update);
-            }
-            if (callbackString.equals(YEAR_FORWARD_CALLBACK)) {
-                calendarViewDate = calendarViewDate.plusYears(1);
-                displayCalendarUpdated(update);
-            }
-            if (callbackString.equals(MONTH_BACK_CALLBACK)) {
-                calendarViewDate = calendarViewDate.minusMonths(1);
-                displayCalendarUpdated(update);
-            }
-            if (callbackString.equals(MONTH_FORWARD_CALLBACK)) {
-                calendarViewDate = calendarViewDate.plusMonths(1);
-                displayCalendarUpdated(update);
-            }*/
             if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
                 goToBeginning(update);
             }
@@ -99,15 +84,25 @@ public class PickDateState extends AbstractState {
                     displayCalendarUpdated(update);
                     break;
             }
-
-
             if (DATE_MATCHING_PATTERN.matcher(callbackString).matches()) {
-                LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
-                context.getTicketRequest().setDepartureDate(pickedDate);
-                System.out.println(context.getTicketRequest().toString());
-                publishTicketRequestSummary(update);
+                processReceivedDateInput(update, callbackString);
             }
         }
+    }
+
+    private void processReceivedDateInput(Update update, String callbackString) {
+        LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
+
+        if(pickedDate.isBefore(LocalDate.now())){
+            sendBotResponse(new AnswerCallbackQuery()
+                    .setCallbackQueryId(update.getCallbackQuery().getId())
+                    .setText("The date can not be prior than today."));
+        } else {
+            context.getTicketRequest().setDepartureDate(pickedDate);
+            publishTicketRequestSummary(update);
+        }
+
+
     }
 
     private void publishTicketRequestSummary(Update update) {

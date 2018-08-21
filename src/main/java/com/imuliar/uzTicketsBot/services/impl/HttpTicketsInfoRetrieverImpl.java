@@ -55,7 +55,7 @@ public class HttpTicketsInfoRetrieverImpl implements HttpTicketsInfoRetriever {
         HttpEntity<LinkedMultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
         ResponseEntity<String> response = restTemplate.exchange(UZ_SEARCH_URL, HttpMethod.POST, requestEntity, String.class);
 
-        if (response.hasBody() && !response.getBody().matches("warning")) {
+        if (response.hasBody() && !response.getBody().contains("warning")) {
             LOGGER.info("Tickets found: ?", ticketRequest);
             return String.format(UZ_RESULT_URL_TEMPLATE, fromStation.getValue(), toStation.getValue(), date.toString());
         }

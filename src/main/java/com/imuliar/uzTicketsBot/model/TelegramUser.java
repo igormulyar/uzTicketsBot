@@ -11,13 +11,20 @@ import javax.persistence.Entity;
 @Entity
 public class TelegramUser extends EntityFrame {
 
-    private String chatId;
+    private Long chatId;
 
-    public String getChatId() {
+    public TelegramUser() {
+    }
+
+    public TelegramUser(Long chatId) {
+        this.chatId = chatId;
+    }
+
+    public Long getChatId() {
         return chatId;
     }
 
-    public void setChatId(String chatId) {
+    public void setChatId(Long chatId) {
         this.chatId = chatId;
     }
 }

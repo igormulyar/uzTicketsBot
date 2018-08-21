@@ -34,7 +34,7 @@ public class TicketRequest extends EntityFrame {
     private Station arrivalStation;
 
     @Enumerated(EnumType.STRING)
-    private TicketRequestStatus requestStatus;
+    private TicketRequestStatus requestStatus = TicketRequestStatus.INACTIVE;
 
     public TicketRequest() {
     }
