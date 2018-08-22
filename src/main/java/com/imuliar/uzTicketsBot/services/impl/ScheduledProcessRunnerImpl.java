@@ -45,7 +45,7 @@ public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
     @Scheduled(
             initialDelay = INITIAL_START_DELAY,
             fixedDelay = BULK_SEARCH_INTERVAL)
-    public void searchTicketsForAllUsers() {
+    public Map<Long, List<String>> searchTicketsForAllUsers() {
         LOGGER.info("Scheduled task started.");
         Map<Long, List<String>> availableTickets = ticketRequestService.findActiveTicketRequests().stream()
                 .collect(Collectors.toMap(tr -> tr.getTelegramUser().getChatId(),
@@ -57,8 +57,10 @@ public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
 
         availableTickets.entrySet().stream()
                 .filter(e -> !CollectionUtils.isEmpty(e.getValue()))
+                .peek(e -> e.getValue().remove(null))
                 .forEach(e -> notifyUser(e.getKey(), e.getValue()));
         LOGGER.info("Scheduled task ended.");
+        return availableTickets;
     }
 
     private void notifyUser(Long chatId, List<String> urls) {
