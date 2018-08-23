@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +57,8 @@ public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
                         }));
 
         availableTickets.entrySet().stream()
+                .peek(e -> e.getValue().removeIf(Objects::isNull))
                 .filter(e -> !CollectionUtils.isEmpty(e.getValue()))
-                .peek(e -> e.getValue().remove(null))
                 .forEach(e -> notifyUser(e.getKey(), e.getValue()));
         LOGGER.info("Scheduled task ended.");
         return availableTickets;
