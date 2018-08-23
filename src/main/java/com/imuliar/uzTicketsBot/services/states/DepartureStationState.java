@@ -29,7 +29,7 @@ public class DepartureStationState extends AbstractState {
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
             if (callbackString.equals(ADD_TASK_CALLBACK)) {
-                sendBotResponse(new SendMessage()
+                bot.sendBotResponse(new SendMessage()
                         .enableMarkdown(true)
                         .setChatId(chatId)
                         .setText("Please enter the station of departure."));

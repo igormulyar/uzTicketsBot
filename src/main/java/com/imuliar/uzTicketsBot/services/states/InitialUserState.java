@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -18,7 +19,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
  * @since 1.0
  */
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InitialUserState extends AbstractState {
 
     private static final String ADD_TASK_CALLBACK = "add_task";
@@ -56,8 +57,8 @@ public class InitialUserState extends AbstractState {
         markupInline.setKeyboard(keyboard);
 
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText("Add task").setCallbackData(ADD_TASK_CALLBACK));
-        buttons.add(new InlineKeyboardButton().setText("View my tasks").setCallbackData(VIEW_TASKS_CALLBACK));
+        buttons.add(new InlineKeyboardButton().setText("Search").setCallbackData(ADD_TASK_CALLBACK));
+        buttons.add(new InlineKeyboardButton().setText("View my search tasks").setCallbackData(VIEW_TASKS_CALLBACK));
         buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
 
@@ -68,7 +69,7 @@ public class InitialUserState extends AbstractState {
                 .setText("HELLO! \n Please, chose the action.")
                 .setReplyMarkup(markupInline);
 
-        sendBotResponse(sendMessage);
+        bot.sendBotResponse(sendMessage);
     }
 
     @Autowired

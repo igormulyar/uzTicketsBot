@@ -7,15 +7,18 @@ import com.imuliar.uzTicketsBot.services.TicketRequestService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <p>//TODO Description</p>
+ * <p>Service for {@link TicketRequest} manipulating</p>
  *
  * @author imuliar
- * @since //TODO Insert version
+ * @since 1.0
  */
 @Service
 public class TicketRequestServiceImpl implements TicketRequestService {
+
+    private static final int ACTIVE_TASKS_LIMIT = 3;
 
     private TicketRequestDao ticketRequestDao;
 
@@ -24,7 +27,7 @@ public class TicketRequestServiceImpl implements TicketRequestService {
      */
     @Override
     public boolean isAlreadySaved(Long chatId, TicketRequest ticketRequest) {
-        return ticketRequestDao.findByChatId(chatId).stream()
+        return ticketRequestDao.findActiveByChatId(chatId).stream()
                 .filter(req -> req.getDepartureStation().getValue().equals(ticketRequest.getDepartureStation().getValue()))
                 .filter(req -> req.getArrivalStation().getValue().equals(ticketRequest.getArrivalStation().getValue()))
                 .anyMatch(req -> req.getDepartureDate().equals(ticketRequest.getDepartureDate()));
@@ -44,6 +47,23 @@ public class TicketRequestServiceImpl implements TicketRequestService {
     @Override
     public List<TicketRequest> findActiveTicketRequests() {
         return ticketRequestDao.findByRequestStatus(TicketRequestStatus.ACTIVE);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void markInactive(TicketRequest executedRequest) {
+        ticketRequestDao.markInactive(executedRequest.getId());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isInTaskLimit(Long chatId) {
+        return ticketRequestDao.countUpActiveTasksAmount(chatId) <= ACTIVE_TASKS_LIMIT;
     }
 
     @Autowired

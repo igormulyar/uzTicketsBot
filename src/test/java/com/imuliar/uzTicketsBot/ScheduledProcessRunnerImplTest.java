@@ -5,10 +5,10 @@ import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.HttpTicketsInfoRetriever;
 import com.imuliar.uzTicketsBot.services.TicketRequestService;
 import com.imuliar.uzTicketsBot.services.impl.ScheduledProcessRunnerImpl;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,7 +71,7 @@ public class ScheduledProcessRunnerImplTest {
         TicketRequest ticketRequest4 = new TicketRequest();
         ticketRequest4.setTelegramUser(telegramUser4);
 
-        List<TicketRequest> activeTicketRequests = Arrays.asList(ticketRequest1, ticketRequest2, ticketRequest3, ticketRequest4);
+        List<TicketRequest> activeTicketRequests = new ArrayList<>(Arrays.asList(ticketRequest1, ticketRequest2, ticketRequest3, ticketRequest4));
 
         Mockito.when(ticketRequestService.findActiveTicketRequests()).thenReturn(activeTicketRequests);
         Mockito.when(ticketsInfoRetriever.requestTickets(ticketRequest1)).thenReturn(url1);
@@ -79,15 +79,11 @@ public class ScheduledProcessRunnerImplTest {
         Mockito.when(ticketsInfoRetriever.requestTickets(ticketRequest3)).thenReturn(url3);
         Mockito.when(ticketsInfoRetriever.requestTickets(ticketRequest4)).thenReturn(url4);
 
-        Map<Long, List<String>> result = scheduledProcessRunner.searchTicketsForAllUsers();
+        scheduledProcessRunner.searchTicketsForAllUsers();
 
-        Assert.assertNotNull(result);
-        Assert.assertEquals(Collections.singletonList(url1), result.get(chatId1));
-        Assert.assertEquals(Arrays.asList(url2, url3), result.get(chatId2));
-        Assert.assertEquals(Arrays.asList(url2, url3), result.get(chatId3));
-
-        Mockito.verify(bot, Mockito.times(3)).execute(sendMessageCaptor.capture());
+        Mockito.verify(bot, Mockito.times(3)).sendBotResponse(sendMessageCaptor.capture());
         List<SendMessage> sendMessageList = sendMessageCaptor.getAllValues();
+        sendMessageList.sort(Comparator.comparing(SendMessage::getText));
         SendMessage sendMessage1 = sendMessageList.get(0);
         SendMessage sendMessage2 = sendMessageList.get(1);
         SendMessage sendMessage3 = sendMessageList.get(2);

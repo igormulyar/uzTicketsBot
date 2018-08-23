@@ -4,10 +4,10 @@ import com.imuliar.uzTicketsBot.model.TicketRequest;
 import java.util.List;
 
 /**
- * <p>//TODO Description</p>
+ * <p>Service for {@link TicketRequest} manipulating</p>
  *
  * @author imuliar
- * @since //TODO Insert version
+ * @since 1.0
  */
 public interface TicketRequestService {
 
@@ -33,4 +33,19 @@ public interface TicketRequestService {
      * @return list of ticket requests
      */
     List<TicketRequest> findActiveTicketRequests();
+
+    /**
+     * <p>Mark executed TicketRequest as inactive</p>
+     *
+     * @param executedRequest TicketRequest to be marked inactive
+     */
+    void markInactive(TicketRequest executedRequest);
+
+    /**
+     * <p>Check if active task limit is not exceed for current user(chatId)</p>
+     *
+     * @param chatId chat id
+     * @return {@code TRUE} if active tasks amount for specified chatId is within limit, otherwise - {@code FALSE}
+     */
+    boolean isInTaskLimit(Long chatId);
 }

@@ -81,11 +81,6 @@ public class TicketRequest extends EntityFrame {
 
     @Override
     public String toString() {
-        return "TicketRequest{" +
-                ", departureDate=" + departureDate +
-                ", departureStation=" + departureStation +
-                ", arrivalStation=" + arrivalStation +
-                ", requestStatus=" + requestStatus +
-                "} ";
+        return departureStation.getTitle() + " - " + arrivalStation.getTitle() + " [" + departureDate + "]";
     }
 }

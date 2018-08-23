@@ -1,6 +1,7 @@
 package com.imuliar.uzTicketsBot;
 
 import com.imuliar.uzTicketsBot.services.InputUpdateHandler;
+import java.io.Serializable;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
+import org.telegram.telegrambots.api.methods.BotApiMethod;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -46,6 +48,14 @@ public class UzTicketsBot extends TelegramLongPollingBot {
             telegramBotsApi.registerBot(this);
         } catch (TelegramApiException e) {
             LOGGER.error("Can't register bot!", e);
+        }
+    }
+
+    public <T extends Serializable, M extends BotApiMethod<T>> void sendBotResponse(M method) {
+        try {
+            execute(method);
+        } catch (Exception e) {
+            LOGGER.error("Bot execute method exception!", e);
         }
     }
 

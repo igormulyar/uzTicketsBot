@@ -1,6 +1,5 @@
 package com.imuliar.uzTicketsBot.services.states;
 
-import com.imuliar.uzTicketsBot.dao.TicketRequestDao;
 import com.imuliar.uzTicketsBot.model.TelegramUser;
 import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.model.TicketRequestStatus;
@@ -69,7 +68,10 @@ public class TrackTicketsState extends AbstractState {
 
     private void addTaskForTracking(Update update, Long chatId) {
         TicketRequest ticketRequest = context.getTicketRequest();
-        if(!ticketRequestService.isAlreadySaved(chatId, ticketRequest)){
+        if(!ticketRequestService.isInTaskLimit(chatId)){
+            notifyToMuchTasks(update.getCallbackQuery().getId());
+        }
+        else if (!ticketRequestService.isAlreadySaved(chatId, ticketRequest)) {
             ticketRequest.setRequestStatus(TicketRequestStatus.ACTIVE);
             ticketRequest.setTelegramUser(new TelegramUser(chatId));
             ticketRequestService.save(ticketRequest);
@@ -81,8 +83,14 @@ public class TrackTicketsState extends AbstractState {
         }
     }
 
+    private void notifyToMuchTasks(String callbackQueryId) {
+        bot.sendBotResponse(new AnswerCallbackQuery()
+                .setCallbackQueryId(callbackQueryId)
+                .setText("You can not have more than 3 active tasks running. This search request will not be tracked automatically."));
+    }
+
     private void notifyIsAlreadySaved(String callbackQueryId) {
-        sendBotResponse(new AnswerCallbackQuery()
+        bot.sendBotResponse(new AnswerCallbackQuery()
                 .setCallbackQueryId(callbackQueryId)
                 .setText("The task is already added for tracking."));
     }
@@ -96,7 +104,7 @@ public class TrackTicketsState extends AbstractState {
         buttons.add(new InlineKeyboardButton().setText("Track tickets").setCallbackData(TRACK_TICKETS_CALLBACK));
         buttons.add(new InlineKeyboardButton().setText("Go to beginning").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-        sendBotResponse(new SendMessage()
+        bot.sendBotResponse(new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(chatId)
                 .setText("No tickets available now. Do you want me to search the tickets for you?")
@@ -104,7 +112,7 @@ public class TrackTicketsState extends AbstractState {
     }
 
     private void publishTaskAdded(String callbackQueryId) {
-        sendBotResponse(new AnswerCallbackQuery()
+        bot.sendBotResponse(new AnswerCallbackQuery()
                 .setCallbackQueryId(callbackQueryId)
                 .setText("The tickets request were added for tracking. I will notify you when available tickets appear."));
     }
@@ -117,7 +125,7 @@ public class TrackTicketsState extends AbstractState {
         List<InlineKeyboardButton> buttons = new ArrayList<>();
         buttons.add(new InlineKeyboardButton().setText("Go to beginning.").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-        sendBotResponse(new SendMessage()
+        bot.sendBotResponse(new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(chatId)
                 .setText("Tickets for your request are available, you can watch and buy here: " + url)

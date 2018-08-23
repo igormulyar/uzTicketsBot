@@ -3,7 +3,6 @@ package com.imuliar.uzTicketsBot.services.states;
 import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.model.Station;
 import com.imuliar.uzTicketsBot.services.UserState;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.util.CollectionUtils;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -58,14 +56,6 @@ public abstract class AbstractState implements UserState {
         throw new IllegalStateException("Can't resolve chatId!!!");
     }
 
-    protected <T extends Serializable, M extends BotApiMethod<T>> void sendBotResponse(M method) {
-        try {
-            bot.execute(method);
-        } catch (Exception e) {
-            LOGGER.error("Bot execute method exception!", e);
-        }
-    }
-
     protected void publishStationSearchResults(Long chatId) {
         if (CollectionUtils.isEmpty(proposedStations)) {
             InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
@@ -76,7 +66,7 @@ public abstract class AbstractState implements UserState {
             buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
             buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            sendBotResponse(new SendMessage()
+            bot.sendBotResponse(new SendMessage()
                     .enableMarkdown(true)
                     .setChatId(chatId)
                     .setText("Sorry, we can't find any station.")
@@ -97,7 +87,7 @@ public abstract class AbstractState implements UserState {
             buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
             buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            sendBotResponse(new SendMessage()
+            bot.sendBotResponse(new SendMessage()
                     .enableMarkdown(true)
                     .setChatId(chatId)
                     .setText("Please, choose one of proposed.")

@@ -1,21 +1,17 @@
 package com.imuliar.uzTicketsBot.services.impl;
 
 import com.imuliar.uzTicketsBot.UzTicketsBot;
+import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.HttpTicketsInfoRetriever;
 import com.imuliar.uzTicketsBot.services.ScheduledProcessRunner;
 import com.imuliar.uzTicketsBot.services.TicketRequestService;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
 /**
@@ -46,38 +42,27 @@ public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
     @Scheduled(
             initialDelay = INITIAL_START_DELAY,
             fixedDelay = BULK_SEARCH_INTERVAL)
-    public Map<Long, List<String>> searchTicketsForAllUsers() {
+    public void searchTicketsForAllUsers() {
         LOGGER.info("Scheduled task started.");
-        Map<Long, List<String>> availableTickets = ticketRequestService.findActiveTicketRequests().stream()
-                .collect(Collectors.toMap(tr -> tr.getTelegramUser().getChatId(),
-                        t -> new ArrayList<>(Collections.singletonList(ticketsInfoRetriever.requestTickets(t))),
-                        (o1, o2) -> {
-                            o1.addAll(o2);
-                            return o1;
-                        }));
 
-        availableTickets.entrySet().stream()
-                .peek(e -> e.getValue().removeIf(Objects::isNull))
-                .filter(e -> !CollectionUtils.isEmpty(e.getValue()))
-                .forEach(e -> notifyUser(e.getKey(), e.getValue()));
+        ticketRequestService.findActiveTicketRequests().stream()
+                .collect(() -> new HashMap<TicketRequest, String>(), (map, req) -> map.put(req, ticketsInfoRetriever.requestTickets(req)), HashMap::putAll)
+                .entrySet().stream()
+                .filter(e -> e.getValue() != null)
+                .peek(this::notifyUser)
+                .forEach(e -> ticketRequestService.markInactive(e.getKey()));
+
         LOGGER.info("Scheduled task ended.");
-        return availableTickets;
     }
 
-    private void notifyUser(Long chatId, List<String> urls) {
-        LOGGER.info("Notifying users.");
-        urls.forEach(url -> {
-            try {
-                bot.execute(new SendMessage()
-                        .enableMarkdown(true)
-                        .setChatId(chatId)
-                        .setText("Tickets for your request are available, you can watch and buy here: " + url));
-            } catch (Exception e) {
-                LOGGER.error("Bot execute method exception!", e);
-            }
-        });
+    private void notifyUser(Map.Entry<TicketRequest, String> urlForRequest) {
+        TicketRequest ticketRequest = urlForRequest.getKey();
+        String url = urlForRequest.getValue();
+        bot.sendBotResponse(new SendMessage()
+                .enableMarkdown(true)
+                .setChatId(ticketRequest.getTelegramUser().getChatId())
+                .setText(String.format("Tickets for [%s] are available, you can watch and buy here: %s . Tracking stopped.", ticketRequest, url)));
     }
-
 
     @Autowired
     public void setTicketsInfoRetriever(HttpTicketsInfoRetriever ticketsInfoRetriever) {

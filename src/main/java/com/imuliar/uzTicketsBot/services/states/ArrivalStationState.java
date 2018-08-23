@@ -32,7 +32,7 @@ public class ArrivalStationState extends AbstractState {
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];
                 if (CollectionUtils.isEmpty(proposedStations)) {
-                    sendBotResponse(new SendMessage()
+                    bot.sendBotResponse(new SendMessage()
                             .enableMarkdown(true)
                             .setChatId(chatId)
                             .setText("Please enter the station of arrival."));

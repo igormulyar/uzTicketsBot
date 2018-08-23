@@ -66,7 +66,7 @@ public class PickDateState extends AbstractState {
                 context.setState(trackTicketsState);
                 context.processUpdate(update);
             }
-            switch (callbackString){
+            switch (callbackString) {
                 case YEAR_BACK_CALLBACK:
                     calendarViewDate = calendarViewDate.minusYears(1);
                     displayCalendarUpdated(update);
@@ -93,8 +93,8 @@ public class PickDateState extends AbstractState {
     private void processReceivedDateInput(Update update, String callbackString) {
         LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
 
-        if(pickedDate.isBefore(LocalDate.now())){
-            sendBotResponse(new AnswerCallbackQuery()
+        if (pickedDate.isBefore(LocalDate.now())) {
+            bot.sendBotResponse(new AnswerCallbackQuery()
                     .setCallbackQueryId(update.getCallbackQuery().getId())
                     .setText("The date can not be prior than today."));
         } else {
@@ -118,7 +118,7 @@ public class PickDateState extends AbstractState {
         buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
 
-        sendBotResponse(new SendMessage()
+        bot.sendBotResponse(new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(resolveChatId(update))
                 .setText(ticketRequestSummary)
@@ -128,7 +128,7 @@ public class PickDateState extends AbstractState {
     private void displayCalendarUpdated(Update update) {
         Long chatId = resolveChatId(update);
         Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-        sendBotResponse(new EditMessageText()
+        bot.sendBotResponse(new EditMessageText()
                 .setChatId(chatId)
                 .setMessageId(toIntExact(messageId))
                 .setText(MESSAGE_TEXT)
@@ -136,7 +136,7 @@ public class PickDateState extends AbstractState {
     }
 
     private void displayCalendar(Update update) {
-        sendBotResponse(new SendMessage()
+        bot.sendBotResponse(new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(resolveChatId(update))
                 .setText(MESSAGE_TEXT)
