@@ -2,10 +2,10 @@ package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.model.Station;
+import com.imuliar.uzTicketsBot.services.OutputMessageService;
 import com.imuliar.uzTicketsBot.services.UserState;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,7 @@ import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import static com.imuliar.uzTicketsBot.services.impl.OutputMessageServiceImpl.*;
 
 /**
  * <p>Encapsulates properties and behaviour which is common for child states.</p>
@@ -28,21 +29,11 @@ public abstract class AbstractState implements UserState {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractState.class);
 
-    protected static final String EMPTY_CALLBACK = "do_nothing";
-
-    protected static final String TO_BEGGINNING_CALBACK = "to_beginning";
-
-    protected static final String ADD_TASK_CALLBACK = "add_task";
-
-    protected static final String STATION_CALLBACK_PATTERN = "stationId:%s";
-
-    protected static final Pattern STATION_CALLBACK_REGEXP_PATTERN = Pattern.compile("^stationId\\:\\d{7}$");
-
-    protected static final String CONFIRM_TICKETS_REQUEST = "confirm_tickets_req";
-
     protected List<Station> proposedStations;
 
     protected UzTicketsBot bot;
+
+    protected OutputMessageService outputMessageService;
 
     protected UserContext context;
 
@@ -113,5 +104,10 @@ public abstract class AbstractState implements UserState {
     @Autowired
     public void setBot(UzTicketsBot bot) {
         this.bot = bot;
+    }
+
+    @Autowired
+    public void setOutputMessageService(OutputMessageService outputMessageService) {
+        this.outputMessageService = outputMessageService;
     }
 }

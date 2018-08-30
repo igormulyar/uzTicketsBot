@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 
 /**
  * <p>The Entity for representing the telegram user in DB.</p>
+ * <p>No personal user data stored - only chat id</p>
  *
  * @author imuliar
  * @since 1.0

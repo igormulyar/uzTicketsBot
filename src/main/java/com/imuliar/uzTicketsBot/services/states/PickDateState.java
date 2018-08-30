@@ -22,6 +22,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import static java.lang.Math.toIntExact;
+import static com.imuliar.uzTicketsBot.services.impl.OutputMessageServiceImpl.*;
 
 /**
  * @author imuliar

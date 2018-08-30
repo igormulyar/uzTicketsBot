@@ -48,4 +48,18 @@ public interface TicketRequestService {
      * @return {@code TRUE} if active tasks amount for specified chatId is within limit, otherwise - {@code FALSE}
      */
     boolean isInTaskLimit(Long chatId);
+
+    /**
+     * <p>Searches for expired ticket requests, notify users, then delete all expired.</p>
+     */
+    public void removeExpiredTicketRequests();
+
+    /**
+     * <p>Removes all inactive ticket requests.</p>
+     */
+    void removeInactiveTicketRequests();
+
+    List<TicketRequest> findActiveRequestsByChatId(Long chatId);
+
+    void deleteById(Long id);
 }

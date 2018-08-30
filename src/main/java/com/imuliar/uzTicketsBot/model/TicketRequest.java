@@ -81,6 +81,6 @@ public class TicketRequest extends EntityFrame {
 
     @Override
     public String toString() {
-        return departureStation.getTitle() + " - " + arrivalStation.getTitle() + " [" + departureDate + "]";
+        return String.format("[%s - %s : %s]", departureStation.getTitle(), arrivalStation.getTitle(), departureDate);
     }
 }

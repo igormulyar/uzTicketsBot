@@ -19,6 +19,8 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import static com.imuliar.uzTicketsBot.services.impl.OutputMessageServiceImpl.*;
+
 /**
  * <p>The state when user should decide if he wants the bot to track the tickets.</p>
  *
@@ -58,10 +60,8 @@ public class TrackTicketsState extends AbstractState {
         TicketRequest ticketRequest = context.getTicketRequest();
         String resultUrl = ticketsInfoRetriever.requestTickets(ticketRequest);
         if (resultUrl != null) {
-            LOGGER.info("Tickets found: ? ?", ticketRequest, resultUrl);
             publishSearchResults(chatId, resultUrl);
         } else {
-            LOGGER.info("Tickets not found: ?", ticketRequest);
             proposeToTrack(chatId);
         }
     }
@@ -69,7 +69,8 @@ public class TrackTicketsState extends AbstractState {
     private void addTaskForTracking(Update update, Long chatId) {
         TicketRequest ticketRequest = context.getTicketRequest();
         if(!ticketRequestService.isInTaskLimit(chatId)){
-            notifyToMuchTasks(update.getCallbackQuery().getId());
+            outputMessageService.popUpNotify(update.getCallbackQuery().getId(),
+                    "You can not have more than 3 active tasks running. This search request will not be tracked automatically.");
         }
         else if (!ticketRequestService.isAlreadySaved(chatId, ticketRequest)) {
             ticketRequest.setRequestStatus(TicketRequestStatus.ACTIVE);
@@ -78,21 +79,9 @@ public class TrackTicketsState extends AbstractState {
             publishTaskAdded(update.getCallbackQuery().getId());
             goToBeginning(update);
         } else {
-            notifyIsAlreadySaved(update.getCallbackQuery().getId());
+            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "The task is already added for tracking.");
             goToBeginning(update);
         }
-    }
-
-    private void notifyToMuchTasks(String callbackQueryId) {
-        bot.sendBotResponse(new AnswerCallbackQuery()
-                .setCallbackQueryId(callbackQueryId)
-                .setText("You can not have more than 3 active tasks running. This search request will not be tracked automatically."));
-    }
-
-    private void notifyIsAlreadySaved(String callbackQueryId) {
-        bot.sendBotResponse(new AnswerCallbackQuery()
-                .setCallbackQueryId(callbackQueryId)
-                .setText("The task is already added for tracking."));
     }
 
     private void proposeToTrack(Long chatId) {

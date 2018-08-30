@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
+
+import static com.imuliar.uzTicketsBot.services.impl.OutputMessageServiceImpl.*;
 
 /**
  * <p>The state when user choosing the station of departure.</p>
@@ -29,10 +30,7 @@ public class DepartureStationState extends AbstractState {
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
             if (callbackString.equals(ADD_TASK_CALLBACK)) {
-                bot.sendBotResponse(new SendMessage()
-                        .enableMarkdown(true)
-                        .setChatId(chatId)
-                        .setText("Please enter the station of departure."));
+                outputMessageService.printSimpleMessage(chatId, "Please enter the station of departure.");
             }
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];

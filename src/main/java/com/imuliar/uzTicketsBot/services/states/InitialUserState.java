@@ -12,6 +12,8 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import static com.imuliar.uzTicketsBot.services.impl.OutputMessageServiceImpl.*;
+
 /**
  * <p>Initial (DEFAULT) user state.</p>
  *
@@ -21,10 +23,6 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InitialUserState extends AbstractState {
-
-    private static final String ADD_TASK_CALLBACK = "add_task";
-
-    private static final String VIEW_TASKS_CALLBACK = "view_tasks";
 
     private DepartureStationState departureStationState;
 
@@ -44,9 +42,7 @@ public class InitialUserState extends AbstractState {
             context.setState(viewTasksState);
             context.processUpdate(update);
         } else {
-            String msg = String.format("WRONG APPLICATION STATE. WRONG QUERY %s FOR STATE: %s",
-                    update.getCallbackQuery(), this.getClass().getName());
-            throw new IllegalStateException(msg);
+            publishMessage(update);
         }
     }
 
