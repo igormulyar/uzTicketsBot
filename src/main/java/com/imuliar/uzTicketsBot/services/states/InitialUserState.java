@@ -2,9 +2,11 @@ package com.imuliar.uzTicketsBot.services.states;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PropertyResourceBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -62,7 +64,7 @@ public class InitialUserState extends AbstractState {
         SendMessage sendMessage = new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(chatId)
-                .setText("HELLO! \n Please, chose the action.")
+                .setText(context.getMessageSource().getMessage("message.chooseAction", null, context.getLocale()))
                 .setReplyMarkup(markupInline);
 
         bot.sendBotResponse(sendMessage);

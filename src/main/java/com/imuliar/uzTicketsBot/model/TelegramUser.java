@@ -14,6 +14,8 @@ public class TelegramUser extends EntityFrame {
 
     private Long chatId;
 
+    private String language = "uk";
+
     public TelegramUser() {
     }
 
@@ -27,5 +29,13 @@ public class TelegramUser extends EntityFrame {
 
     public void setChatId(Long chatId) {
         this.chatId = chatId;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 }

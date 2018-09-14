@@ -21,7 +21,7 @@ import javax.persistence.Table;
 @Table(name = "TicketRequest")
 public class TicketRequest extends EntityFrame {
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "user_ID",
             foreignKey = @ForeignKey(name = "FK_Request_User"))
     private TelegramUser telegramUser;

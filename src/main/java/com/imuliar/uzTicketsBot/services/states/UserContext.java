@@ -2,9 +2,12 @@ package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.UserState;
+import java.util.Locale;
 import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.objects.Update;
@@ -22,6 +25,10 @@ public abstract class UserContext {
     private AbstractState state;
 
     private TicketRequest ticketRequest;
+
+    private Locale locale;
+
+    private MessageSource messageSource;
 
     @PostConstruct
     public void setInitialState() {
@@ -52,5 +59,22 @@ public abstract class UserContext {
 
     public void setTicketRequest(TicketRequest ticketRequest) {
         this.ticketRequest = ticketRequest;
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale locale) {
+        this.locale = locale;
+    }
+
+    public MessageSource getMessageSource() {
+        return messageSource;
+    }
+
+    @Autowired
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
     }
 }

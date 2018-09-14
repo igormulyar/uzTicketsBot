@@ -6,6 +6,8 @@ import com.imuliar.uzTicketsBot.services.OutputMessageService;
 import com.imuliar.uzTicketsBot.services.UserState;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +47,7 @@ public abstract class AbstractState implements UserState {
             return update.getCallbackQuery().getMessage().getChatId();
         }
         throw new IllegalStateException("Can't resolve chatId!!!");
-    }
+        }
 
     protected void publishStationSearchResults(Long chatId) {
         if (CollectionUtils.isEmpty(proposedStations)) {

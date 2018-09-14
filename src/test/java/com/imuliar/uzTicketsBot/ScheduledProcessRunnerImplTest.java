@@ -3,6 +3,7 @@ package com.imuliar.uzTicketsBot;
 import com.imuliar.uzTicketsBot.model.TelegramUser;
 import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.HttpTicketsInfoRetriever;
+import com.imuliar.uzTicketsBot.services.OutputMessageService;
 import com.imuliar.uzTicketsBot.services.TicketRequestService;
 import com.imuliar.uzTicketsBot.services.impl.ScheduledProcessRunnerImpl;
 import java.util.ArrayList;
@@ -34,13 +35,13 @@ public class ScheduledProcessRunnerImplTest {
     private ScheduledProcessRunnerImpl scheduledProcessRunner;
 
     @Mock
-    private UzTicketsBot bot;
-
-    @Mock
     private HttpTicketsInfoRetriever ticketsInfoRetriever;
 
     @Mock
     private TicketRequestService ticketRequestService;
+
+    @Mock
+    private OutputMessageService outputMessageService;
 
     @Captor
     private ArgumentCaptor<SendMessage> sendMessageCaptor;
@@ -81,7 +82,7 @@ public class ScheduledProcessRunnerImplTest {
 
         scheduledProcessRunner.searchTicketsForAllUsers();
 
-        Mockito.verify(bot, Mockito.times(3)).sendBotResponse(sendMessageCaptor.capture());
+/*        Mockito.verify(outputMessageService, Mockito.times(3)).notifyTicketsSearchSuccess(sendMessageCaptor.capture());
         List<SendMessage> sendMessageList = sendMessageCaptor.getAllValues();
         sendMessageList.sort(Comparator.comparing(SendMessage::getText));
         SendMessage sendMessage1 = sendMessageList.get(0);
@@ -92,6 +93,6 @@ public class ScheduledProcessRunnerImplTest {
         Assert.assertTrue(sendMessage3.getText().contains(url3));
         Assert.assertEquals(chatId1.toString(), sendMessage1.getChatId());
         Assert.assertEquals(chatId2.toString(), sendMessage2.getChatId());
-        Assert.assertEquals(chatId2.toString(), sendMessage3.getChatId());
+        Assert.assertEquals(chatId2.toString(), sendMessage3.getChatId());*/
     }
 }
