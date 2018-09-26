@@ -1,38 +1,35 @@
 package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.model.TicketRequest;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import static java.lang.Math.toIntExact;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import static com.imuliar.uzTicketsBot.services.impl.OutputMessageServiceImpl.*;
+import static java.lang.Math.toIntExact;
 
 /**
  * @author imuliar
- * 21.07.2018
+ *         21.07.2018
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PickDateState extends AbstractState {
-
-    private static final String MESSAGE_TEXT = "Please chose the departure date";
 
     private static final String YEAR_BACK_CALLBACK = "year_back";
 
@@ -57,7 +54,7 @@ public class PickDateState extends AbstractState {
             String callbackString = update.getCallbackQuery().getData();
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 calendarViewDate = LocalDate.now();
-                displayCalendar(update);
+                outputMessageService.printMessageWithKeyboard(resolveChatId(update), "Please chose the departure date", buildCalendarMarkup(calendarViewDate));
             }
             if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
                 goToBeginning(update);
@@ -93,17 +90,12 @@ public class PickDateState extends AbstractState {
 
     private void processReceivedDateInput(Update update, String callbackString) {
         LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
-
         if (pickedDate.isBefore(LocalDate.now())) {
-            bot.sendBotResponse(new AnswerCallbackQuery()
-                    .setCallbackQueryId(update.getCallbackQuery().getId())
-                    .setText("The date can not be prior than today."));
+            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "The date can not be prior than today.");
         } else {
             context.getTicketRequest().setDepartureDate(pickedDate);
             publishTicketRequestSummary(update);
         }
-
-
     }
 
     private void publishTicketRequestSummary(Update update) {
@@ -118,30 +110,13 @@ public class PickDateState extends AbstractState {
         buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(CONFIRM_TICKETS_REQUEST));
         buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-
-        bot.sendBotResponse(new SendMessage()
-                .enableMarkdown(true)
-                .setChatId(resolveChatId(update))
-                .setText(ticketRequestSummary)
-                .setReplyMarkup(markupInline));
+        outputMessageService.printMessageWithKeyboard(resolveChatId(update), ticketRequestSummary, markupInline);
     }
 
     private void displayCalendarUpdated(Update update) {
         Long chatId = resolveChatId(update);
         Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-        bot.sendBotResponse(new EditMessageText()
-                .setChatId(chatId)
-                .setMessageId(toIntExact(messageId))
-                .setText(MESSAGE_TEXT)
-                .setReplyMarkup(buildCalendarMarkup(calendarViewDate)));
-    }
-
-    private void displayCalendar(Update update) {
-        bot.sendBotResponse(new SendMessage()
-                .enableMarkdown(true)
-                .setChatId(resolveChatId(update))
-                .setText(MESSAGE_TEXT)
-                .setReplyMarkup(buildCalendarMarkup(calendarViewDate)));
+        outputMessageService.updateMessageWithMarkup(chatId, toIntExact(messageId), "Please chose the departure date", buildCalendarMarkup(calendarViewDate));
     }
 
     private InlineKeyboardMarkup buildCalendarMarkup(@Nullable LocalDate date) {
@@ -167,7 +142,7 @@ public class PickDateState extends AbstractState {
         keyboard.add(yearRow);
 
         InlineKeyboardButton monthToLeft = new InlineKeyboardButton().setText(" <<<<< ").setCallbackData(MONTH_BACK_CALLBACK);
-        InlineKeyboardButton calendarMonth = new InlineKeyboardButton().setText(date.getMonth().toString()).setCallbackData(EMPTY_CALLBACK);
+        InlineKeyboardButton calendarMonth = new InlineKeyboardButton().setText(date.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, context.getLocale())).setCallbackData(EMPTY_CALLBACK);
         InlineKeyboardButton monthToRight = new InlineKeyboardButton().setText(" >>>>> ").setCallbackData(MONTH_FORWARD_CALLBACK);
         List<InlineKeyboardButton> monthRow = new ArrayList<>(Arrays.asList(monthToLeft, calendarMonth, monthToRight));
         keyboard.add(monthRow);

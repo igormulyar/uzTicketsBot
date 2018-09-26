@@ -8,6 +8,8 @@ import com.imuliar.uzTicketsBot.services.ScheduledProcessRunner;
 import com.imuliar.uzTicketsBot.services.TicketRequestService;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,7 @@ public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
         ticketRequestService.removeInactiveTicketRequests();
         ticketRequestService.removeExpiredTicketRequests();
         ticketRequestService.findActiveTicketRequests().stream()
-                .collect(() -> new HashMap<TicketRequest, String>(), (map, req) -> map.put(req, ticketsInfoRetriever.requestTickets(req)), HashMap::putAll)
+                .collect((Supplier<HashMap<TicketRequest, String>>) HashMap::new, (map, req) -> map.put(req, ticketsInfoRetriever.requestTickets(req)), HashMap::putAll)
                 .entrySet().stream()
                 .filter(e -> e.getValue() != null)
                 .peek(e -> outputMessageService.notifyTicketsSearchSuccess(e.getKey(), e.getValue()))

@@ -48,9 +48,15 @@ public abstract class TelegramUpdateHandlerImpl implements InputUpdateHandler {
         } else {
             UserSession newUserSession = initSession();
             userSessionPool.put(chatId, newUserSession);
-            Locale sessionLocale = Optional.ofNullable(userDao.findByChatId(resolveChatId(update)))
-                    .map(user -> new Locale(user.getLanguage()))
-                    .orElse(new Locale("uk", "UA"));
+            Locale sessionLocale = null;
+            TelegramUser user = userDao.findByChatId(resolveChatId(update));
+            if(user == null){
+                userDao.save(new TelegramUser(chatId));
+                sessionLocale = new Locale("uk", "UA");
+            } else{
+                sessionLocale = new Locale(user.getLanguage());
+            }
+
             newUserSession.getContext().setLocale(sessionLocale);
             newUserSession.getContext().processUpdate(update);
         }

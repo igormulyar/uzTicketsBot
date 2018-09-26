@@ -32,12 +32,12 @@ public class ArrivalStationState extends AbstractState {
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
             if (callbackString.equals(ADD_TASK_CALLBACK)) {
-                outputMessageService.printSimpleMessage(chatId, "Please enter the station of arrival.");
+                outputMessageService.printSimpleMessage(chatId, context.getMessageSource().getMessage("message.enterArrival", new Object[]{}, context.getLocale()));
             }
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];
                 if (CollectionUtils.isEmpty(proposedStations)) {
-                    outputMessageService.printSimpleMessage(chatId, "Please enter the station of arrival.");
+                    outputMessageService.printSimpleMessage(chatId, context.getMessageSource().getMessage("message.enterArrival", new Object[]{}, context.getLocale()));
                 } else {
                     Station arrivalStation = proposedStations.stream()
                             .filter(proposed -> proposed.getValue().equals(selectedId))
@@ -46,7 +46,7 @@ public class ArrivalStationState extends AbstractState {
 
                     if(context.getTicketRequest().getDepartureStation().getValue().equals(arrivalStation.getValue())){
                         outputMessageService.popUpNotify(update.getCallbackQuery().getId(),
-                                "Arrival station can not be the same as departure station!");
+                                context.getMessageSource().getMessage("alert.sameStation", new Object[]{}, context.getLocale()));
                     } else {
                         context.getTicketRequest().setArrivalStation(arrivalStation);
                         pickDateState.setContext(context);

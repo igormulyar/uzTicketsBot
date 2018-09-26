@@ -3,17 +3,19 @@ package com.imuliar.uzTicketsBot.services.impl;
 import com.imuliar.uzTicketsBot.UzTicketsBot;
 import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.OutputMessageService;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import static java.lang.Math.toIntExact;
 
 /**
  * @author imuliar
@@ -21,6 +23,9 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
  */
 @Service
 public class OutputMessageServiceImpl implements OutputMessageService {
+
+    @Autowired
+    private MessageSource messages;
 
     public static final String EMPTY_CALLBACK = "do_nothing";
     public static final String TO_BEGGINNING_CALBACK = "to_beginning";
@@ -39,19 +44,18 @@ public class OutputMessageServiceImpl implements OutputMessageService {
      */
     @Override
     public void notifyStopTrackingExpiredRequests(List<TicketRequest> ticketRequests) {
-        String messagePattern = "Tracking task for ticket request [%s - %s for %s] are going to be closed and deleted, " +
-                "because of desired tickets was not found by the specified departure date.";
         ticketRequests.forEach(tr ->
-                printSimpleMessage(tr.getTelegramUser().getChatId(), String.format(messagePattern, tr.getDepartureStation().getTitle(),
-                        tr.getArrivalStation().getTitle(), tr.getDepartureDate().toString()))
+                printSimpleMessage(tr.getTelegramUser().getChatId(), messages.getMessage("message.expiredTaskStopped",
+                        new String[]{tr.getDepartureStation().getTitle(), tr.getArrivalStation().getTitle(), tr.getDepartureDate().toString()}, new Locale(tr.getTelegramUser().getLanguage())))
         );
     }
 
     @Override
     public void notifyTicketsSearchSuccess(TicketRequest ticketRequest, String url) {
-        printSimpleMessage(ticketRequest.getTelegramUser().getChatId(),
-                String.format("Tickets for [%s] are available, you can watch and buy here: %s . " +
-                        "Tracking stopped. Searching task will be deleted.", ticketRequest, url));
+        Locale locale = new Locale(ticketRequest.getTelegramUser().getLanguage());
+        String message = messages.getMessage("message.ticketsFound", new String[]{url}, locale)
+                + messages.getMessage("message.trackingStopped", new Object[]{}, locale);
+        printSimpleMessage(ticketRequest.getTelegramUser().getChatId(), message);
     }
 
     @Override
@@ -62,7 +66,8 @@ public class OutputMessageServiceImpl implements OutputMessageService {
                 .setText(message));
     }
 
-    public void printMessageWithKeyboard(Long chatId, String message, InlineKeyboardMarkup keyboardMarkup) {
+    @Override
+        public void printMessageWithKeyboard(Long chatId, String message, InlineKeyboardMarkup keyboardMarkup) {
         bot.sendBotResponse(new SendMessage()
                 .enableMarkdown(true)
                 .setChatId(chatId)
@@ -71,8 +76,8 @@ public class OutputMessageServiceImpl implements OutputMessageService {
     }
 
     @Override
-    public void printListOfUserTasks(Long chatId, List<TicketRequest> activeTicketRequests) {
-        String messageText = "You have the following ticket search requests:";
+    public void printListOfUserTasks(Long chatId, List<TicketRequest> activeTicketRequests, Locale locale) {
+        String messageText = messages.getMessage("message.yourTaskList", new Object[]{}, locale);
         String labelPattern = "[%s - %s : %s]";
         String callbackPattern = "viewTask:%d";
 
@@ -89,15 +94,16 @@ public class OutputMessageServiceImpl implements OutputMessageService {
 
     @Override
     public void printTaskOverview(Long chatId, TicketRequest ticketRequest) {
+        Locale locale = new Locale(ticketRequest.getTelegramUser().getLanguage());
         String messageText = String.format("[%s - %s : %s]", ticketRequest.getDepartureStation().getTitle(),
                 ticketRequest.getArrivalStation().getTitle(),
                 ticketRequest.getDepartureDate().toString());
         String searchNowCallback = String.format("searchNow:%d", ticketRequest.getId());
         String deleteTaskCallback = String.format("deleteTask:%d", ticketRequest.getId());
         InlineKeyboardMarkup keyboardMarkup = createKeyboardMarkup(Collections.singletonList(createKeyBoardLine(
-                createButton("Search right now", searchNowCallback),
-                createButton("Delete", deleteTaskCallback),
-                createButton("Cancel", TO_BEGGINNING_CALBACK))));
+                createButton(messages.getMessage("button.searchRightNow", new Object[]{}, locale), searchNowCallback),
+                createButton(messages.getMessage("button.delete", new Object[]{}, locale), deleteTaskCallback),
+                createButton(messages.getMessage("button.cancel", new Object[]{}, locale), TO_BEGGINNING_CALBACK))));
         printMessageWithKeyboard(chatId, messageText, keyboardMarkup);
     }
 
@@ -107,6 +113,15 @@ public class OutputMessageServiceImpl implements OutputMessageService {
                 .setCallbackQueryId(callbackQueryId)
                 .setShowAlert(true)
                 .setText(messageText));
+    }
+
+    @Override
+    public void updateMessageWithMarkup(Long chatId, int messageId, String text, InlineKeyboardMarkup markup) {
+        bot.sendBotResponse(new EditMessageText()
+                .setChatId(chatId)
+                .setMessageId(toIntExact(messageId))
+                .setText(text)
+                .setReplyMarkup(markup));
     }
 
     private InlineKeyboardMarkup createKeyboardMarkup(List<List<InlineKeyboardButton>> keyboardLines) {

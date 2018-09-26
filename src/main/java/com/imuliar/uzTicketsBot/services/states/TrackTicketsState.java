@@ -76,7 +76,7 @@ public class TrackTicketsState extends AbstractState {
             ticketRequest.setRequestStatus(TicketRequestStatus.ACTIVE);
             ticketRequest.setTelegramUser(new TelegramUser(chatId));
             ticketRequestService.save(ticketRequest);
-            publishTaskAdded(update.getCallbackQuery().getId());
+            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "The tickets request were added for tracking. I will notify you when available tickets appear.");
             goToBeginning(update);
         } else {
             outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "The task is already added for tracking.");
@@ -93,17 +93,7 @@ public class TrackTicketsState extends AbstractState {
         buttons.add(new InlineKeyboardButton().setText("Track tickets").setCallbackData(TRACK_TICKETS_CALLBACK));
         buttons.add(new InlineKeyboardButton().setText("Go to beginning").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-        bot.sendBotResponse(new SendMessage()
-                .enableMarkdown(true)
-                .setChatId(chatId)
-                .setText("No tickets available now. Do you want me to search the tickets for you?")
-                .setReplyMarkup(markupInline));
-    }
-
-    private void publishTaskAdded(String callbackQueryId) {
-        bot.sendBotResponse(new AnswerCallbackQuery()
-                .setCallbackQueryId(callbackQueryId)
-                .setText("The tickets request were added for tracking. I will notify you when available tickets appear."));
+        outputMessageService.printMessageWithKeyboard(chatId, "No tickets available now. Do you want me to search the tickets for you?", markupInline);
     }
 
     private void publishSearchResults(Long chatId, String url) {
@@ -114,11 +104,7 @@ public class TrackTicketsState extends AbstractState {
         List<InlineKeyboardButton> buttons = new ArrayList<>();
         buttons.add(new InlineKeyboardButton().setText("Go to beginning.").setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-        bot.sendBotResponse(new SendMessage()
-                .enableMarkdown(true)
-                .setChatId(chatId)
-                .setText("Tickets for your request are available, you can watch and buy here: " + url)
-                .setReplyMarkup(markupInline));
+        outputMessageService.printMessageWithKeyboard(chatId, "Tickets for your request are available, you can watch and buy here: " + url, markupInline);
     }
 
     @Autowired

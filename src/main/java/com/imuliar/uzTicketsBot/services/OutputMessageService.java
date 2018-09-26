@@ -1,7 +1,10 @@
 package com.imuliar.uzTicketsBot.services;
 
 import com.imuliar.uzTicketsBot.model.TicketRequest;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
+
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -20,9 +23,8 @@ public interface OutputMessageService {
 
     /**
      * <p>Notify user that tickets were found.</p>
-     *
-     * @param urlForRequest map whe key is the ticket request and
-     *                      value is the link to the web page for choosing and buying the tickets
+     * @param ticketRequest info about requested tickets
+     * @param resultUrl link for choosing and buying the tickets on UZ web site
      */
     void notifyTicketsSearchSuccess(TicketRequest ticketRequest, String resultUrl);
 
@@ -34,15 +36,19 @@ public interface OutputMessageService {
      */
     void printSimpleMessage(Long chatId, String message);
 
+    void printMessageWithKeyboard(Long chatId, String message, InlineKeyboardMarkup keyboardMarkup);
+
     /**
      * <p>Displays active user's tasks to user.</p>
      *
      * @param chatId               chat id
      * @param activeTicketRequests list of active tasks
      */
-    void printListOfUserTasks(Long chatId, List<TicketRequest> activeTicketRequests);
+    void printListOfUserTasks(Long chatId, List<TicketRequest> activeTicketRequests, Locale locale);
 
     void printTaskOverview(Long chatId, TicketRequest ticketRequest);
 
     void popUpNotify(String callbackQueryId, String messageText);
+
+    void updateMessageWithMarkup(Long chatId, int messageId, String text, InlineKeyboardMarkup markup);
 }

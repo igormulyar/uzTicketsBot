@@ -85,7 +85,7 @@ public class ViewTasksState extends AbstractState {
             outputMessageService.popUpNotify(update.getCallbackQuery().getId(),
                     "You don't have any active search tasks.");
         } else {
-            outputMessageService.printListOfUserTasks(chatId, activeTicketRequests);
+            outputMessageService.printListOfUserTasks(chatId, activeTicketRequests, context.getLocale());
         }
     }
 

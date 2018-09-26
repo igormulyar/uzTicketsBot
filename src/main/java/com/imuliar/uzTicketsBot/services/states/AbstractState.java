@@ -1,23 +1,23 @@
 package com.imuliar.uzTicketsBot.services.states;
 
 import com.imuliar.uzTicketsBot.UzTicketsBot;
+import com.imuliar.uzTicketsBot.dao.TelegramUserDao;
 import com.imuliar.uzTicketsBot.model.Station;
 import com.imuliar.uzTicketsBot.services.OutputMessageService;
 import com.imuliar.uzTicketsBot.services.UserState;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.util.CollectionUtils;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.imuliar.uzTicketsBot.services.impl.OutputMessageServiceImpl.*;
 
 /**
@@ -36,6 +36,8 @@ public abstract class AbstractState implements UserState {
     protected UzTicketsBot bot;
 
     protected OutputMessageService outputMessageService;
+
+    protected TelegramUserDao userDao;
 
     protected UserContext context;
 
@@ -56,14 +58,10 @@ public abstract class AbstractState implements UserState {
             markupInline.setKeyboard(keyboard);
 
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
-            buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.enterAgain", new Object[]{}, context.getLocale())).setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.cancel", new Object[]{}, context.getLocale())).setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            bot.sendBotResponse(new SendMessage()
-                    .enableMarkdown(true)
-                    .setChatId(chatId)
-                    .setText("Sorry, we can't find any station.")
-                    .setReplyMarkup(markupInline));
+            outputMessageService.printMessageWithKeyboard(chatId, context.getMessageSource().getMessage("message.cantFindStation", new Object[]{}, context.getLocale()), markupInline);
         } else {
             InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
@@ -77,14 +75,10 @@ public abstract class AbstractState implements UserState {
                 keyboard.add(buttonLine);
             }
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            buttons.add(new InlineKeyboardButton().setText("Enter again").setCallbackData(ADD_TASK_CALLBACK));
-            buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.enterAgain", new Object[]{}, context.getLocale())).setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.cancel", new Object[]{}, context.getLocale())).setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            bot.sendBotResponse(new SendMessage()
-                    .enableMarkdown(true)
-                    .setChatId(chatId)
-                    .setText("Please, choose one of proposed.")
-                    .setReplyMarkup(markupInline));
+            outputMessageService.printMessageWithKeyboard(chatId, context.getMessageSource().getMessage("message.selectStation", new Object[]{}, context.getLocale()), markupInline);
         }
     }
 
@@ -111,5 +105,10 @@ public abstract class AbstractState implements UserState {
     @Autowired
     public void setOutputMessageService(OutputMessageService outputMessageService) {
         this.outputMessageService = outputMessageService;
+    }
+
+    @Autowired
+    public void setUserDao(TelegramUserDao userDao) {
+        this.userDao = userDao;
     }
 }

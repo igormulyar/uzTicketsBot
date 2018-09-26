@@ -30,7 +30,7 @@ public class DepartureStationState extends AbstractState {
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
             if (callbackString.equals(ADD_TASK_CALLBACK)) {
-                outputMessageService.printSimpleMessage(chatId, "Please enter the station of departure.");
+                outputMessageService.printSimpleMessage(chatId, context.getMessageSource().getMessage("message.enterDeparture", new Object[]{}, context.getLocale()));
             }
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];
