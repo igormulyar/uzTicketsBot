@@ -1,6 +1,8 @@
 package com.imuliar.uzTicketsBot.services;
 
 import com.imuliar.uzTicketsBot.model.Station;
+import com.imuliar.uzTicketsBot.services.states.UserContext;
+
 import java.util.List;
 
 /**
@@ -17,5 +19,5 @@ public interface StationCodeResolver {
      * @param userInput station name entered by user
      * @return station code
      */
-    List<Station> resolveProposedStations(String userInput);
+    List<Station> resolveProposedStations(String userInput, UserContext context);
 }

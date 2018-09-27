@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -58,7 +59,7 @@ public class TrackTicketsState extends AbstractState {
 
     private void searchTicketsNow(Long chatId) {
         TicketRequest ticketRequest = context.getTicketRequest();
-        String resultUrl = ticketsInfoRetriever.requestTickets(ticketRequest);
+        String resultUrl = ticketsInfoRetriever.requestTickets(ticketRequest, context.getLocale());
         if (resultUrl != null) {
             publishSearchResults(chatId, resultUrl);
         } else {
@@ -70,16 +71,17 @@ public class TrackTicketsState extends AbstractState {
         TicketRequest ticketRequest = context.getTicketRequest();
         if(!ticketRequestService.isInTaskLimit(chatId)){
             outputMessageService.popUpNotify(update.getCallbackQuery().getId(),
-                    "You can not have more than 3 active tasks running. This search request will not be tracked automatically.");
+                    context.getLocalizedMessage("alert.taskLimit"));
         }
         else if (!ticketRequestService.isAlreadySaved(chatId, ticketRequest)) {
             ticketRequest.setRequestStatus(TicketRequestStatus.ACTIVE);
-            ticketRequest.setTelegramUser(new TelegramUser(chatId));
             ticketRequestService.save(ticketRequest);
-            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "The tickets request were added for tracking. I will notify you when available tickets appear.");
+            ticketRequest.setTelegramUser(userDao.findByChatId(chatId));
+            ticketRequestService.save(ticketRequest);
+            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), context.getLocalizedMessage("alert.taskAdded"));
             goToBeginning(update);
         } else {
-            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "The task is already added for tracking.");
+            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), context.getLocalizedMessage("alert.taskAlreadyAdded"));
             goToBeginning(update);
         }
     }
@@ -90,10 +92,10 @@ public class TrackTicketsState extends AbstractState {
         markupInline.setKeyboard(keyboard);
 
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText("Track tickets").setCallbackData(TRACK_TICKETS_CALLBACK));
-        buttons.add(new InlineKeyboardButton().setText("Go to beginning").setCallbackData(TO_BEGGINNING_CALBACK));
+        buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.trackTickets")).setCallbackData(TRACK_TICKETS_CALLBACK));
+        buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.toBeginning")).setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-        outputMessageService.printMessageWithKeyboard(chatId, "No tickets available now. Do you want me to search the tickets for you?", markupInline);
+        outputMessageService.printMessageWithKeyboard(chatId, context.getLocalizedMessage("message.noAvailableTickets"), markupInline);
     }
 
     private void publishSearchResults(Long chatId, String url) {
@@ -102,9 +104,9 @@ public class TrackTicketsState extends AbstractState {
         markupInline.setKeyboard(keyboard);
 
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText("Go to beginning.").setCallbackData(TO_BEGGINNING_CALBACK));
+        buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.toBeginning")).setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-        outputMessageService.printMessageWithKeyboard(chatId, "Tickets for your request are available, you can watch and buy here: " + url, markupInline);
+        outputMessageService.printMessageWithKeyboard(chatId, context.getLocalizedMessage("message.ticketsFound", new String[]{url}), markupInline);
     }
 
     @Autowired

@@ -30,7 +30,7 @@ public class DepartureStationState extends AbstractState {
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
             if (callbackString.equals(ADD_TASK_CALLBACK)) {
-                outputMessageService.printSimpleMessage(chatId, context.getMessageSource().getMessage("message.enterDeparture", new Object[]{}, context.getLocale()));
+                outputMessageService.printSimpleMessage(chatId, context.getLocalizedMessage("message.enterDeparture"));
             }
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];
@@ -49,7 +49,7 @@ public class DepartureStationState extends AbstractState {
             }
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             String userInput = update.getMessage().getText();
-            proposedStations = stationCodeResolver.resolveProposedStations(userInput);
+            proposedStations = stationCodeResolver.resolveProposedStations(userInput, context);
             publishStationSearchResults(chatId);
         }
     }

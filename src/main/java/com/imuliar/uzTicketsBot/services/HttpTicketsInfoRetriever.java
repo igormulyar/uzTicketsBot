@@ -2,6 +2,8 @@ package com.imuliar.uzTicketsBot.services;
 
 import com.imuliar.uzTicketsBot.model.TicketRequest;
 
+import java.util.Locale;
+
 /**
  * <p>Service for getting tickets info via HTTP.</p>
  *
@@ -16,5 +18,5 @@ public interface HttpTicketsInfoRetriever {
      * @param ticketRequest carries all search criteria
      * @return info about available tickets for specified date and direction
      */
-    String requestTickets(TicketRequest ticketRequest);
+    String requestTickets(TicketRequest ticketRequest, Locale locale);
 }

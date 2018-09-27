@@ -8,6 +8,8 @@ import com.imuliar.uzTicketsBot.model.TicketRequest;
 import com.imuliar.uzTicketsBot.services.HttpTicketsInfoRetriever;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,10 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -39,26 +38,26 @@ public class HttpTicketsInfoRetrieverImpl implements HttpTicketsInfoRetriever {
 
     private static final String DEFAULT_SEARCH_TIME_OFFSET = "00:00";
 
-    private static final String UZ_SEARCH_URL = "https://booking.uz.gov.ua/ru/train_search/";
-
     private static final String UZ_RESULT_URL_TEMPLATE = "https://booking.uz.gov.ua/ru/?from=%s&to=%s&date=%s&time=00%%3A00&url=train-list";
+
+    private MessageSource messageSource;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String requestTickets(TicketRequest ticketRequest) {
+    public String requestTickets(TicketRequest ticketRequest, Locale locale) {
         LocalDate date = ticketRequest.getDepartureDate();
         Station fromStation = ticketRequest.getDepartureStation();
         Station toStation = ticketRequest.getArrivalStation();
 
         LOGGER.info("Searching for tickets: ?", ticketRequest);
-        ResponseEntity<String> response = askUzServerForJsonString(date, fromStation, toStation);
+        ResponseEntity<String> response = askUzServerForJsonString(date, fromStation, toStation, locale);
 
 
         if (response.hasBody() && evaluateJsonString(response.getBody(), Collections.emptySet())) { //TODO Correct after implementing selecting the seat/carriage type
             LOGGER.info("Tickets found: ?", ticketRequest);
-            return String.format(UZ_RESULT_URL_TEMPLATE, fromStation.getValue(), toStation.getValue(), date.toString());
+            return messageSource.getMessage("url.searchResultTemplate", new String[]{fromStation.getValue(), toStation.getValue(), date.toString()}, locale);
         }
 
         LOGGER.info("No tickets found: ?", ticketRequest);
@@ -73,7 +72,8 @@ public class HttpTicketsInfoRetrieverImpl implements HttpTicketsInfoRetriever {
      * @param toStation   requested station of arrival
      * @return ResponseEntity
      */
-    private ResponseEntity<String> askUzServerForJsonString(LocalDate date, Station fromStation, Station toStation) {
+    private ResponseEntity<String> askUzServerForJsonString(LocalDate date, Station fromStation, Station toStation, Locale locale) {
+        String localizedUrl = messageSource.getMessage("url.uzTicketsSearch", new Object[]{}, locale);
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
         HttpHeaders headers = new HttpHeaders();
@@ -83,7 +83,7 @@ public class HttpTicketsInfoRetrieverImpl implements HttpTicketsInfoRetriever {
         params.add("time", DEFAULT_SEARCH_TIME_OFFSET);
         params.add("to", toStation.getValue());
         HttpEntity<LinkedMultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
-        return restTemplate.exchange(UZ_SEARCH_URL, HttpMethod.POST, requestEntity, String.class);
+        return restTemplate.exchange(localizedUrl, HttpMethod.POST, requestEntity, String.class);
     }
 
     /**
@@ -121,5 +121,10 @@ public class HttpTicketsInfoRetrieverImpl implements HttpTicketsInfoRetriever {
             LOGGER.error("Exception was thrown during the attempt of matching JsonNode to specified type", e);
         }
         return object;
+    }
+
+    @Autowired
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
     }
 }

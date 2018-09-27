@@ -8,7 +8,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -52,9 +51,9 @@ public abstract class TelegramUpdateHandlerImpl implements InputUpdateHandler {
             TelegramUser user = userDao.findByChatId(resolveChatId(update));
             if(user == null){
                 userDao.save(new TelegramUser(chatId));
-                sessionLocale = new Locale("uk", "UA");
+                sessionLocale = Locale.forLanguageTag("uk-UA");
             } else{
-                sessionLocale = new Locale(user.getLanguage());
+                sessionLocale = Locale.forLanguageTag(user.getLanguage());
             }
 
             newUserSession.getContext().setLocale(sessionLocale);

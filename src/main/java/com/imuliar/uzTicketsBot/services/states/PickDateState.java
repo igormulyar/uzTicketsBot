@@ -13,6 +13,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,11 +51,12 @@ public class PickDateState extends AbstractState {
      */
     @Override
     public void processUpdate(Update update) {
+        Long chatId = resolveChatId(update);
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 calendarViewDate = LocalDate.now();
-                outputMessageService.printMessageWithKeyboard(resolveChatId(update), "Please chose the departure date", buildCalendarMarkup(calendarViewDate));
+                outputMessageService.printMessageWithKeyboard(chatId, context.getLocalizedMessage("message.chooseDepartureDate"), buildCalendarMarkup(calendarViewDate));
             }
             if (callbackString.equals(TO_BEGGINNING_CALBACK)) {
                 goToBeginning(update);
@@ -91,7 +93,7 @@ public class PickDateState extends AbstractState {
     private void processReceivedDateInput(Update update, String callbackString) {
         LocalDate pickedDate = LocalDate.parse(callbackString, DateTimeFormatter.ISO_DATE);
         if (pickedDate.isBefore(LocalDate.now())) {
-            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "The date can not be prior than today.");
+            outputMessageService.popUpNotify(update.getCallbackQuery().getId(), context.getLocalizedMessage("alert.priorDate"));
         } else {
             context.getTicketRequest().setDepartureDate(pickedDate);
             publishTicketRequestSummary(update);
@@ -100,23 +102,27 @@ public class PickDateState extends AbstractState {
 
     private void publishTicketRequestSummary(Update update) {
         TicketRequest ticketRequest = context.getTicketRequest();
-        String ticketRequestSummary = String.format("Search FROM %s TO %s DATE %s", ticketRequest.getDepartureStation().getTitle(),
-                ticketRequest.getArrivalStation().getTitle(), ticketRequest.getDepartureDate());
+        String date =
+                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)
+                        .withLocale(context.getLocale())
+                        .format(ticketRequest.getDepartureDate());
+        String ticketRequestSummary = context.getLocalizedMessage("message.confirmSearch",
+                new String[]{ticketRequest.getDepartureStation().getTitle(), ticketRequest.getArrivalStation().getTitle(), date});
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText("Confirm").setCallbackData(CONFIRM_TICKETS_REQUEST));
-        buttons.add(new InlineKeyboardButton().setText("Cancel").setCallbackData(TO_BEGGINNING_CALBACK));
+        buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.confirm")).setCallbackData(CONFIRM_TICKETS_REQUEST));
+        buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.cancel")).setCallbackData(TO_BEGGINNING_CALBACK));
         keyboard.add(buttons);
-        outputMessageService.printMessageWithKeyboard(resolveChatId(update), ticketRequestSummary, markupInline);
+        outputMessageService.printMessageWithKeyboard(resolveChatId(update),  ticketRequestSummary, markupInline);
     }
 
     private void displayCalendarUpdated(Update update) {
         Long chatId = resolveChatId(update);
         Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-        outputMessageService.updateMessageWithMarkup(chatId, toIntExact(messageId), "Please chose the departure date", buildCalendarMarkup(calendarViewDate));
+        outputMessageService.updateMessageWithMarkup(chatId, toIntExact(messageId), context.getLocalizedMessage("message.enterDate"), buildCalendarMarkup(calendarViewDate));
     }
 
     private InlineKeyboardMarkup buildCalendarMarkup(@Nullable LocalDate date) {
@@ -148,13 +154,13 @@ public class PickDateState extends AbstractState {
         keyboard.add(monthRow);
 
         List<InlineKeyboardButton> daysOfWeekRow = new ArrayList<>();
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("mon").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("tue").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("wed").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("thu").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("fri").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("sat").setCallbackData(EMPTY_CALLBACK));
-        daysOfWeekRow.add(new InlineKeyboardButton().setText("sun").setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("calendar.mon")).setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("calendar.tue")).setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("calendar.wed")).setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("calendar.thu")).setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("calendar.fri")).setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("calendar.sat")).setCallbackData(EMPTY_CALLBACK));
+        daysOfWeekRow.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("calendar.sun")).setCallbackData(EMPTY_CALLBACK));
         keyboard.add(daysOfWeekRow);
 
         int dayOfWeekCounter = 1;

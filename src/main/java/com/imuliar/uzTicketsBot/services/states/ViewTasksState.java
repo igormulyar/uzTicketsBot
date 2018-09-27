@@ -48,12 +48,12 @@ public class ViewTasksState extends AbstractState {
 
     private void processInstantSearch(Update update, String callbackString) {
         TicketRequest ticketRequest = getTicketRequestById(parseTicketRequestId(callbackString));
-        String resultUrl = httpTicketsInfoRetriever.requestTickets(ticketRequest);
+        String resultUrl = httpTicketsInfoRetriever.requestTickets(ticketRequest, context.getLocale());
         if(resultUrl != null){
             outputMessageService.notifyTicketsSearchSuccess(ticketRequest, resultUrl);
         } else {
             outputMessageService.popUpNotify(update.getCallbackQuery().getId(),
-                    "No tickets found");
+                    context.getLocalizedMessage("alert.noTicketsFound"));
         }
         goToBeginning(update);
     }
@@ -64,7 +64,7 @@ public class ViewTasksState extends AbstractState {
 
     private void processDeleteTicketRequest(Update update, Long id) {
         ticketRequestService.deleteById(id);
-        outputMessageService.popUpNotify(update.getCallbackQuery().getId(), "Task deleted");
+        outputMessageService.popUpNotify(update.getCallbackQuery().getId(), context.getLocalizedMessage("alert.taskDeleted"));
         goToBeginning(update);
     }
 
@@ -83,7 +83,7 @@ public class ViewTasksState extends AbstractState {
         activeTicketRequests = ticketRequestService.findActiveRequestsByChatId(chatId);
         if (CollectionUtils.isEmpty(activeTicketRequests)) {
             outputMessageService.popUpNotify(update.getCallbackQuery().getId(),
-                    "You don't have any active search tasks.");
+                    context.getLocalizedMessage("alert.noActiveTasks"));
         } else {
             outputMessageService.printListOfUserTasks(chatId, activeTicketRequests, context.getLocale());
         }

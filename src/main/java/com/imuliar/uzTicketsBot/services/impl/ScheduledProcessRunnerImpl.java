@@ -7,6 +7,7 @@ import com.imuliar.uzTicketsBot.services.OutputMessageService;
 import com.imuliar.uzTicketsBot.services.ScheduledProcessRunner;
 import com.imuliar.uzTicketsBot.services.TicketRequestService;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -50,7 +51,7 @@ public class ScheduledProcessRunnerImpl implements ScheduledProcessRunner {
         ticketRequestService.removeInactiveTicketRequests();
         ticketRequestService.removeExpiredTicketRequests();
         ticketRequestService.findActiveTicketRequests().stream()
-                .collect((Supplier<HashMap<TicketRequest, String>>) HashMap::new, (map, req) -> map.put(req, ticketsInfoRetriever.requestTickets(req)), HashMap::putAll)
+                .collect((Supplier<HashMap<TicketRequest, String>>) HashMap::new, (map, req) -> map.put(req, ticketsInfoRetriever.requestTickets(req, Locale.forLanguageTag(req.getTelegramUser().getLanguage()))), HashMap::putAll)
                 .entrySet().stream()
                 .filter(e -> e.getValue() != null)
                 .peek(e -> outputMessageService.notifyTicketsSearchSuccess(e.getKey(), e.getValue()))

@@ -32,12 +32,12 @@ public class ArrivalStationState extends AbstractState {
         if (update.hasCallbackQuery()) {
             String callbackString = update.getCallbackQuery().getData();
             if (callbackString.equals(ADD_TASK_CALLBACK)) {
-                outputMessageService.printSimpleMessage(chatId, context.getMessageSource().getMessage("message.enterArrival", new Object[]{}, context.getLocale()));
+                outputMessageService.printSimpleMessage(chatId, context.getLocalizedMessage("message.enterArrival"));
             }
             if (STATION_CALLBACK_REGEXP_PATTERN.matcher(callbackString).matches()) {
                 String selectedId = callbackString.split(":")[1];
                 if (CollectionUtils.isEmpty(proposedStations)) {
-                    outputMessageService.printSimpleMessage(chatId, context.getMessageSource().getMessage("message.enterArrival", new Object[]{}, context.getLocale()));
+                    outputMessageService.printSimpleMessage(chatId, context.getLocalizedMessage("message.enterArrival"));
                 } else {
                     Station arrivalStation = proposedStations.stream()
                             .filter(proposed -> proposed.getValue().equals(selectedId))
@@ -46,7 +46,7 @@ public class ArrivalStationState extends AbstractState {
 
                     if(context.getTicketRequest().getDepartureStation().getValue().equals(arrivalStation.getValue())){
                         outputMessageService.popUpNotify(update.getCallbackQuery().getId(),
-                                context.getMessageSource().getMessage("alert.sameStation", new Object[]{}, context.getLocale()));
+                                context.getLocalizedMessage("alert.sameStation"));
                     } else {
                         context.getTicketRequest().setArrivalStation(arrivalStation);
                         pickDateState.setContext(context);
@@ -60,7 +60,7 @@ public class ArrivalStationState extends AbstractState {
             }
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             String userInput = update.getMessage().getText();
-            proposedStations = stationCodeResolver.resolveProposedStations(userInput);
+            proposedStations = stationCodeResolver.resolveProposedStations(userInput, context);
             publishStationSearchResults(chatId);
         }
     }

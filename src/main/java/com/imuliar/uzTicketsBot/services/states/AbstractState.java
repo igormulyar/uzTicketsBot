@@ -58,10 +58,10 @@ public abstract class AbstractState implements UserState {
             markupInline.setKeyboard(keyboard);
 
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.enterAgain", new Object[]{}, context.getLocale())).setCallbackData(ADD_TASK_CALLBACK));
-            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.cancel", new Object[]{}, context.getLocale())).setCallbackData(TO_BEGGINNING_CALBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.enterAgain")).setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.cancel")).setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            outputMessageService.printMessageWithKeyboard(chatId, context.getMessageSource().getMessage("message.cantFindStation", new Object[]{}, context.getLocale()), markupInline);
+            outputMessageService.printMessageWithKeyboard(chatId, context.getLocalizedMessage("message.cantFindStation"), markupInline);
         } else {
             InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
@@ -75,10 +75,10 @@ public abstract class AbstractState implements UserState {
                 keyboard.add(buttonLine);
             }
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.enterAgain", new Object[]{}, context.getLocale())).setCallbackData(ADD_TASK_CALLBACK));
-            buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.cancel", new Object[]{}, context.getLocale())).setCallbackData(TO_BEGGINNING_CALBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.enterAgain")).setCallbackData(ADD_TASK_CALLBACK));
+            buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.cancel")).setCallbackData(TO_BEGGINNING_CALBACK));
             keyboard.add(buttons);
-            outputMessageService.printMessageWithKeyboard(chatId, context.getMessageSource().getMessage("message.selectStation", new Object[]{}, context.getLocale()), markupInline);
+            outputMessageService.printMessageWithKeyboard(chatId, context.getLocalizedMessage("message.selectStation"), markupInline);
         }
     }
 

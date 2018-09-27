@@ -57,20 +57,22 @@ public class InitialUserState extends AbstractState {
                     publishLangList(update);
                     break;
                 case LANG_UA:
-                    userDao.updateLanguage(chatId, "ua");
-                    context.setLocale(new Locale("uk"));
+                    userDao.updateLanguage(chatId, "uk-UA");
+                    context.setLocale(Locale.forLanguageTag("uk-UA"));
                     printInitialMessage(chatId);
                     break;
                 case LANG_RU:
-                    userDao.updateLanguage(chatId, "ru");
-                    context.setLocale(new Locale("ru"));
+                    userDao.updateLanguage(chatId, "ru-RU");
+                    context.setLocale(Locale.forLanguageTag("ru-RU"));
                     printInitialMessage(chatId);
                     break;
                 case LANG_EN:
-                    userDao.updateLanguage(chatId, "en");
-                    context.setLocale(new Locale("en"));
+                    userDao.updateLanguage(chatId, "en-US");
+                    context.setLocale(Locale.forLanguageTag("en-US"));
                     printInitialMessage(chatId);
                     break;
+                default:
+                    printInitialMessage(chatId);
             }
         } else {
             printInitialMessage(chatId);
@@ -84,11 +86,11 @@ public class InitialUserState extends AbstractState {
         markupInline.setKeyboard(keyboard);
 
         List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.searchTickets", new Object[]{}, context.getLocale())).setCallbackData(ADD_TASK_CALLBACK));
-        buttons.add(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("lang.lang", new Object[]{}, context.getLocale())).setCallbackData(CHANGE_LANG_CALLBACK));
+        buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.searchTickets")).setCallbackData(ADD_TASK_CALLBACK));
+        buttons.add(new InlineKeyboardButton().setText(context.getLocalizedMessage("lang.lang")).setCallbackData(CHANGE_LANG_CALLBACK));
         keyboard.add(buttons);
-        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("button.currentSearchTasks", new Object[]{}, context.getLocale())).setCallbackData(VIEW_TASKS_CALLBACK)));
-        outputMessageService.printMessageWithKeyboard(chatId, context.getMessageSource().getMessage("message.chooseAction", new Object[]{}, context.getLocale()), markupInline);
+        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getLocalizedMessage("button.currentSearchTasks")).setCallbackData(VIEW_TASKS_CALLBACK)));
+        outputMessageService.printMessageWithKeyboard(chatId, context.getLocalizedMessage("message.chooseAction"), markupInline);
     }
 
     private void publishLangList(Update update) {
@@ -96,10 +98,10 @@ public class InitialUserState extends AbstractState {
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
         markupInline.setKeyboard(keyboard);
 
-        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("lang.ua", new Object[]{}, context.getLocale())).setCallbackData(LANG_UA)));
-        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("lang.ru", new Object[]{}, context.getLocale())).setCallbackData(LANG_RU)));
-        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getMessageSource().getMessage("lang.en", new Object[]{}, context.getLocale())).setCallbackData(LANG_EN)));
-        outputMessageService.printMessageWithKeyboard(resolveChatId(update), context.getMessageSource().getMessage("message.selectLang", new Object[]{}, context.getLocale()), markupInline);
+        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getLocalizedMessage("lang.ua")).setCallbackData(LANG_UA)));
+        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getLocalizedMessage("lang.ru")).setCallbackData(LANG_RU)));
+        keyboard.add(Collections.singletonList(new InlineKeyboardButton().setText(context.getLocalizedMessage("lang.en")).setCallbackData(LANG_EN)));
+        outputMessageService.printMessageWithKeyboard(resolveChatId(update), context.getLocalizedMessage("message.selectLang"), markupInline);
     }
 
     @Autowired

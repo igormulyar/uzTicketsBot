@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
+
+import com.imuliar.uzTicketsBot.services.states.UserContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -31,16 +33,14 @@ public class StationCodeResolverImpl implements StationCodeResolver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StationCodeResolverImpl.class);
 
-    private static final String URL_PATTERN = "https://booking.uz.gov.ua/ru/train_search/station/?term=%s";
-
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Station> resolveProposedStations(String userInput) {
+    public List<Station> resolveProposedStations(String userInput, UserContext context) {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
-        String url = String.format(URL_PATTERN, userInput);
+        String url = context.getLocalizedMessage("url.stationCodeResolveTemplate", new String[]{userInput});
 
         HttpHeaders headers = new HttpHeaders();
         LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();

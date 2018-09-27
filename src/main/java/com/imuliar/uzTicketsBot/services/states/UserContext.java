@@ -44,6 +44,14 @@ public abstract class UserContext {
         state.processUpdate(update);
     }
 
+    public String getLocalizedMessage(String messageCode){
+        return messageSource.getMessage(messageCode, new Object[]{}, locale);
+    }
+
+    public String getLocalizedMessage(String messageCode, String[] args){
+        return messageSource.getMessage(messageCode, args, locale);
+    }
+
     public UserState getState() {
         return state;
     }

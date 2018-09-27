@@ -46,13 +46,13 @@ public class OutputMessageServiceImpl implements OutputMessageService {
     public void notifyStopTrackingExpiredRequests(List<TicketRequest> ticketRequests) {
         ticketRequests.forEach(tr ->
                 printSimpleMessage(tr.getTelegramUser().getChatId(), messages.getMessage("message.expiredTaskStopped",
-                        new String[]{tr.getDepartureStation().getTitle(), tr.getArrivalStation().getTitle(), tr.getDepartureDate().toString()}, new Locale(tr.getTelegramUser().getLanguage())))
+                        new String[]{tr.getDepartureStation().getTitle(), tr.getArrivalStation().getTitle(), tr.getDepartureDate().toString()}, Locale.forLanguageTag(tr.getTelegramUser().getLanguage())))
         );
     }
 
     @Override
     public void notifyTicketsSearchSuccess(TicketRequest ticketRequest, String url) {
-        Locale locale = new Locale(ticketRequest.getTelegramUser().getLanguage());
+        Locale locale = Locale.forLanguageTag(ticketRequest.getTelegramUser().getLanguage());
         String message = messages.getMessage("message.ticketsFound", new String[]{url}, locale)
                 + messages.getMessage("message.trackingStopped", new Object[]{}, locale);
         printSimpleMessage(ticketRequest.getTelegramUser().getChatId(), message);
@@ -94,7 +94,7 @@ public class OutputMessageServiceImpl implements OutputMessageService {
 
     @Override
     public void printTaskOverview(Long chatId, TicketRequest ticketRequest) {
-        Locale locale = new Locale(ticketRequest.getTelegramUser().getLanguage());
+        Locale locale = Locale.forLanguageTag(ticketRequest.getTelegramUser().getLanguage());
         String messageText = String.format("[%s - %s : %s]", ticketRequest.getDepartureStation().getTitle(),
                 ticketRequest.getArrivalStation().getTitle(),
                 ticketRequest.getDepartureDate().toString());

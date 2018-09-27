@@ -14,7 +14,7 @@ public class TelegramUser extends EntityFrame {
 
     private Long chatId;
 
-    private String language = "uk";
+    private String language = "uk-UA";
 
     public TelegramUser() {
     }
